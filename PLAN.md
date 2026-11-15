@@ -37,7 +37,7 @@
 
 Структура Rust workspace (план):
 
-\`\`\`text
+```text
 desktop/
   crates/
     otp-core/       # RFC 4226/6238, модель записи, URI parser (без GUI)
@@ -62,7 +62,7 @@ packaging/
   windows/
   ubuntu/
 README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md
-\`\`\`
+```
 
 Папки появятся в соответствующем этапе, сейчас существуют только документы. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
 
@@ -71,21 +71,21 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md
 2. Сравнить **полные** dependency graph (normal/build/proc-macro/native), лицензии, объем unsafe/native code, build scripts, графические backend, размер бинарника, доступность/offline build и обновляемость.
 3. Проверить accessibility, clipboard, system tray, screen locking, Wayland/X11, HiDPI, отсутствие необязательного network/web runtime, FPS/CPU без нагрузки.
 4. Для Slint особо проверить требования выбранной лицензии и варианты backend; для eframe — графические и оконные зависимости; не путать небольшой egui core с полной стоимостью eframe.
-5. Зафиксировать результат и бюджет зависимостей в \`security/adr/0002-gui.md\`; GUI не должен влиять на тесты и API core.
+5. Зафиксировать результат и бюджет зависимостей в `security/adr/0002-gui.md`; GUI не должен влиять на тесты и API core.
 
 ### ADR-003 — минимум сторонних зависимостей
 
-**Rust:** \`Cargo.lock\` обязателен, default-features отключать где оправдано, \`cargo vendor\` для релизной сборки, \`cargo --frozen\` и отключенный network в CI; каждый новый crate проверять по лицензии, источнику, владельцам, жизнеспособности, \`build.rs\`, unsafe и транзитивным зависимостям.
+**Rust:** `Cargo.lock` обязателен, default-features отключать где оправдано, `cargo vendor` для релизной сборки, `cargo --frozen` и отключенный network в CI; каждый новый crate проверять по лицензии, источнику, владельцам, жизнеспособности, `build.rs`, unsafe и транзитивным зависимостям.
 
-**Go:** standard library везде, где можно, только обоснованный PostgreSQL-драйвер; закрепленные версии в \`go.mod/go.sum\`, \`go mod vendor\` и \`-mod=vendor\` для offline release. Не вводить Gin/Fiber/GORM/Redis/Keycloak SDK в MVP без ADR.
+**Go:** standard library везде, где можно, только обоснованный PostgreSQL-драйвер; закрепленные версии в `go.mod/go.sum`, `go mod vendor` и `-mod=vendor` для offline release. Не вводить Gin/Fiber/GORM/Redis/Keycloak SDK в MVP без ADR.
 
-**Infrastructure:** pinned toolchains, независимые checksums, signed provenance, SBOM SPDX/CycloneDX, уязвимости + лицензии, controlled ingestion → offline build; никаких сетевых скачиваний во время финального build и \`curl | sh\`.
+**Infrastructure:** pinned toolchains, независимые checksums, signed provenance, SBOM SPDX/CycloneDX, уязвимости + лицензии, controlled ingestion → offline build; никаких сетевых скачиваний во время финального build и `curl | sh`.
 
 Цель — **уменьшить доверенную поверхность**, а не механически довести число зависимостей до нуля. Не писать собственные криптографические примитивы. Не считать «прошёл CVE scan» доказательством безопасности.
 
 ### ADR-004 — открытая совместимость
 
-HOTP RFC 4226, TOTP RFC 6238, \`otpauth://\`; алгоритмы SHA-1 (для совместимости), SHA-256, SHA-512, digits 6/8, period 30 с поддержкой валидируемых параметров; корректный HOTP counter. Строгий URI parser с ограничениями входа и отказом от неподдерживаемых параметров. Стандартные RFC test vectors обязательны. Пароль/секрет не записываются в логи.
+HOTP RFC 4226, TOTP RFC 6238, `otpauth://`; алгоритмы SHA-1 (для совместимости), SHA-256, SHA-512, digits 6/8, period 30 с поддержкой валидируемых параметров; корректный HOTP counter. Строгий URI parser с ограничениями входа и отказом от неподдерживаемых параметров. Стандартные RFC test vectors обязательны. Пароль/секрет не записываются в логи.
 
 ### ADR-005 — парольное шифрование vault, без обязательного Keyring
 
@@ -100,13 +100,13 @@ HOTP RFC 4226, TOTP RFC 6238, \`otpauth://\`; алгоритмы SHA-1 (для �
 
 ## 3. Desktop use cases (MVP)
 
-Создать/открыть/закрыть vault; добавить/изменить/удалить запись; показать TOTP с периодом; вручную увеличить HOTP counter и атомарно сохранить; импорт \`otpauth://\` по тексту; поиск после разблокировки; encrypted export/import и проверенное восстановление; автоматическая блокировка после простоя. QR сканер и интеграция с tray — после анализа дополнительных dependencies (P1), а не через необоснованный крупный framework.
+Создать/открыть/закрыть vault; добавить/изменить/удалить запись; показать TOTP с периодом; вручную увеличить HOTP counter и атомарно сохранить; импорт `otpauth://` по тексту; поиск после разблокировки; encrypted export/import и проверенное восстановление; автоматическая блокировка после простоя. QR сканер и интеграция с tray — после анализа дополнительных dependencies (P1), а не через необоснованный крупный framework.
 
 **Необязательная синхронизация vault** отложена: собственный MFA-verifier не должен получать или синхронизировать vault клиентских токенов.
 
 ## 4. Go MFA Verifier: trust boundaries
 
-\`\`\`text
+```text
 [Пользователь] ── primary auth ──> [Backend приложения / свой IdP]
                                         │  server-to-server HTTPS + identity
                                         ▼
@@ -118,14 +118,14 @@ HOTP RFC 4226, TOTP RFC 6238, \`otpauth://\`; алгоритмы SHA-1 (для �
 Backend приложения <-- MFA decision ----┘
          │
          └── только backend приложения повышает свою authenticated session
-\`\`\`
+```
 
 - MFA-verifier не заменяет primary authentication и RBAC/ABAC существующих проектов.
 - Tenant/project определяется **аутентифицированной service identity** (mTLS либо scoped machine credentials); не принимается как пользовательский, непроверенный JSON-параметр.
-- Subject ID валидируется в пространстве tenant; challenge связан с \`tenant_id + subject_id + purpose + session_binding\` и имеет TTL, попытки, одноразовый статус.
+- Subject ID валидируется в пространстве tenant; challenge связан с `tenant_id + subject_id + purpose + session_binding` и имеет TTL, попытки, одноразовый статус.
 - Enrollment seed создается сервером; предъявляется доверенным backend только после аутентификации и подтверждается TOTP. Вторая сторона может использовать **любой** TOTP-клиент.
 - Endpoint disable/re-enroll/recovery требует step-up или контролируемого процесса восстановления; запрещен fail-open при недоступном verifier.
-- Seed в БД: AEAD encryption, \`key_id\`, ключи шифрования из управляемого файла/secret provider **вне PostgreSQL и образа контейнера**. Документировать key rotation.
+- Seed в БД: AEAD encryption, `key_id`, ключи шифрования из управляемого файла/secret provider **вне PostgreSQL и образа контейнера**. Документировать key rotation.
 - Verify: ограниченное окно времени, проверка по HMAC, constant-time сравнение, атомарное однократное принятие временного шага, защита от повторов при конкурентных запросах; транзакции и constraints в БД.
 - Защита от перебора: лимиты попыток на challenge/subject/tenant/service, fail closed, при нескольких репликах состояние в PostgreSQL (без обязательного Redis).
 - Recovery codes: CSPRNG, достаточно длинные, одноразовые, хеширование с server-held pepper, атомарное использование.
@@ -134,7 +134,7 @@ Backend приложения <-- MFA decision ----┘
 
 ### 4.1. API (предложение; **ещё не реализовано**)
 
-\`\`\`http
+```http
 POST /v1/mfa/enrollments/start
 POST /v1/mfa/enrollments/{id}/confirm
 POST /v1/mfa/challenges
@@ -143,19 +143,19 @@ POST /v1/mfa/factors/{id}/disable
 POST /v1/mfa/recovery-codes/rotate
 GET  /health/live
 GET  /health/ready
-\`\`\`
+```
 
-Схемы запросов/ответов, способы привязки к relying session, TTL, idempotency и ошибки согласовать в \`api/openapi.yaml\` перед реализацией.
+Схемы запросов/ответов, способы привязки к relying session, TTL, idempotency и ошибки согласовать в `api/openapi.yaml` перед реализацией.
 
 ### 4.2. Концептуальная схема данных
 
-- \`mfa_service_clients(id,tenant_id,credential_ref,status)\`
-- \`mfa_subjects(tenant_id,subject_id,status)\`
-- \`mfa_factors(id,tenant_id,subject_id,type,algorithm,digits,period,secret_ciphertext,key_id,last_accepted_step,status)\`
-- \`mfa_enrollments(id,tenant_id,subject_id,secret_ciphertext,expires_at,state)\`
-- \`mfa_challenges(id,tenant_id,subject_id,session_binding_hash,purpose,expires_at,attempts,state)\`
-- \`mfa_recovery_codes(id,tenant_id,subject_id,digest,used_at)\`
-- \`mfa_audit(id,tenant_id,subject_id,event,decision,created_at,correlation_id)\`
+- `mfa_service_clients(id,tenant_id,credential_ref,status)`
+- `mfa_subjects(tenant_id,subject_id,status)`
+- `mfa_factors(id,tenant_id,subject_id,type,algorithm,digits,period,secret_ciphertext,key_id,last_accepted_step,status)`
+- `mfa_enrollments(id,tenant_id,subject_id,secret_ciphertext,expires_at,state)`
+- `mfa_challenges(id,tenant_id,subject_id,session_binding_hash,purpose,expires_at,attempts,state)`
+- `mfa_recovery_codes(id,tenant_id,subject_id,digest,used_at)`
+- `mfa_audit(id,tenant_id,subject_id,event,decision,created_at,correlation_id)`
 
 В SQL обязательно включить tenant-bound foreign keys, uniqueness, migrations и индексы. Схема пока проектная, не существует в БД. Idempotent confirmation и exact replay guard требуют отдельных транзакционных тестов.
 
@@ -165,7 +165,7 @@ GET  /health/ready
 
 **Security Definition of Done**:
 1. Сформулированы trust boundaries и тесты отрицательных сценариев; нет заявления, что полностью компрометированную ОС можно защитить.
-2. Есть RFC vector tests для Rust и Go, fuzzing \`otpauth://\` и vault parser, race/concurrency tests для backend.
+2. Есть RFC vector tests для Rust и Go, fuzzing `otpauth://` и vault parser, race/concurrency tests для backend.
 3. Реализовано отсутствие секретов в логах, exception, CI/artifacts и необязательных сетевых компонентах.
 4. Новые зависимости проверены, закреплены, лицензии учтены, SBOM сформирован, reproducibility проверена или ограничение указано явно.
 5. Проверены отказ/восстановление vault, backup restore, login step-up, replay, key rotation и database migration.
