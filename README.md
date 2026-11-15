@@ -1,6 +1,6 @@
 # Authenticator
 
-**Статус:** architecture bootstrap / draft v0.6. Документация и security policy опубликованы. Реализованы **Go и Rust OTP core** (RFC 4226/6238) с общими векторами; vault v1 зафиксирован ([ADR-004](security/adr/0004-vault.md)) и реализован на уровне **format/crypto, in-memory сессии и atomic persistence для Linux** (VAULT-001…003); Windows-durability и backup/export (VAULT-005) ещё не готовы. GUI и HTTP API verifier ещё не реализованы.
+**Статус:** architecture bootstrap / draft v0.6. Документация и security policy опубликованы. Реализованы **Go и Rust OTP core** (RFC 4226/6238) с общими векторами; vault v1 зафиксирован ([ADR-004](security/adr/0004-vault.md)) и реализован на уровне **format/crypto, in-memory сессии и atomic persistence для Linux** (VAULT-001…004, persistence пока только Linux); Windows-durability и backup/export (VAULT-005) ещё не готовы. GUI и HTTP API verifier ещё не реализованы.
 
 Authenticator — независимая open-source платформа второго фактора:
 
@@ -120,7 +120,7 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 - [security/adr/0004-vault.md](security/adr/0004-vault.md) — бинарный формат vault v1, лимиты, atomic write и восстановление.
 - [SECURITY.md](SECURITY.md) — как сообщить об уязвимости и политика раскрытия.
 
-**Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP; формат vault v1 и его fixtures уже реализованы ([ADR-004](security/adr/0004-vault.md), [fixtures](tests/vault/v1/README.md)), in-memory сессия (VAULT-002) и Linux persistence (VAULT-003, частично) готовы; дальше — Windows-часть VAULT-003, VAULT-004…005, затем серверный verifier.
+**Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP; формат vault v1 и его fixtures уже реализованы ([ADR-004](security/adr/0004-vault.md), [fixtures](tests/vault/v1/README.md)), in-memory сессия (VAULT-002) и Linux persistence (VAULT-003, частично) готовы; модель ошибок (VAULT-004) проверена; дальше — Windows-часть VAULT-003, VAULT-005, затем серверный verifier.
 
 ## Лицензия
 

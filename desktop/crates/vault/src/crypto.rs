@@ -364,4 +364,92 @@ mod tests {
     fn deterministic_seal_matches_for_fixtures() {
         assert_eq!(sealed(), sealed());
     }
+
+    /// Encrypts arbitrary plaintext with a correct header/AAD, bypassing the
+    /// payload encoder, to model a buggy or hostile writer that knows the key.
+    fn seal_raw(plaintext: &[u8]) -> Vec<u8> {
+        let salt = [0x33; SALT_LEN];
+        let nonce = [0x44; NONCE_LEN];
+        let header = Header {
+            params: params(),
+            salt,
+            nonce,
+            ciphertext_len: (plaintext.len() + TAG_LEN) as u64,
+        }
+        .encode();
+        let key = derive_key(PASSWORD, &salt, params()).expect("kdf");
+        let ciphertext = cipher(&key)
+            .encrypt(
+                XNonce::from_slice(&nonce),
+                AeadPayload {
+                    msg: plaintext,
+                    aad: &header[..],
+                },
+            )
+            .expect("encrypt");
+        [header.to_vec(), ciphertext].concat()
+    }
+
+    #[test]
+    fn authenticated_but_invalid_payload_is_corrupt_not_auth_failure() {
+        let good = payload().encode().expect("encode");
+        assert_eq!(open(PASSWORD, &seal_raw(&good)), Ok(payload()));
+
+        let mut bad_magic = good.to_vec();
+        bad_magic[0] = b'X';
+        let file = seal_raw(&bad_magic);
+        assert_eq!(
+            open(PASSWORD, &file),
+            Err(VaultError::Corrupt("payload magic"))
+        );
+        // The same file with a wrong password is indistinguishable from
+        // tampering, and distinct from structural corruption.
+        assert_eq!(
+            open(b"wrong password", &file),
+            Err(VaultError::AuthenticationFailed)
+        );
+
+        let mut future = good.to_vec();
+        future[4..6].copy_from_slice(&2_u16.to_be_bytes());
+        assert_eq!(
+            open(PASSWORD, &seal_raw(&future)),
+            Err(VaultError::Unsupported("payload version"))
+        );
+
+        let mut trailing = good.to_vec();
+        trailing.push(0);
+        assert_eq!(
+            open(PASSWORD, &seal_raw(&trailing)),
+            Err(VaultError::Corrupt("payload length mismatch"))
+        );
+
+        assert_eq!(
+            open(PASSWORD, &seal_raw(&[0_u8; 16])),
+            Err(VaultError::Corrupt("payload magic"))
+        );
+    }
+
+    #[test]
+    fn header_version_and_kdf_changes_fail_before_kdf() {
+        let mut file = sealed();
+        file[4..6].copy_from_slice(&2_u16.to_be_bytes());
+        assert_eq!(
+            open(PASSWORD, &file),
+            Err(VaultError::Unsupported("envelope version"))
+        );
+
+        // A hostile memory cost is refused without running Argon2id.
+        let mut file = sealed();
+        file[12..16].copy_from_slice(&u32::MAX.to_be_bytes());
+        assert_eq!(
+            open(PASSWORD, &file),
+            Err(VaultError::ResourceLimit("kdf memory cost"))
+        );
+
+        // In-range but different KDF params change the derived key: the
+        // header is authenticated, so this is an authentication failure.
+        let mut file = sealed();
+        file[16..20].copy_from_slice(&(MIN_T_COST + 1).to_be_bytes());
+        assert_eq!(open(PASSWORD, &file), Err(VaultError::AuthenticationFailed));
+    }
 }

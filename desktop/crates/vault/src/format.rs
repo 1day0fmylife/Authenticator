@@ -1131,4 +1131,280 @@ mod tests {
         assert!(!rendered.contains("alice@example.com"));
         assert!(rendered.contains("redacted"));
     }
+
+    // ---- VAULT-004: decode-side bounds and robustness -------------------
+
+    /// Raw record bytes with arbitrary (possibly invalid) field values.
+    #[allow(clippy::too_many_arguments)]
+    fn raw_record(
+        record_type: u8,
+        otp_type: u8,
+        algorithm: u8,
+        digits: u8,
+        period: u32,
+        counter: u64,
+        secret: &[u8],
+        issuer: &[u8],
+        account: &[u8],
+    ) -> Vec<u8> {
+        let mut out = vec![record_type, otp_type, algorithm, digits];
+        out.extend_from_slice(&period.to_be_bytes());
+        out.extend_from_slice(&counter.to_be_bytes());
+        for field in [secret, issuer, account] {
+            out.extend_from_slice(&(field.len() as u16).to_be_bytes());
+            out.extend_from_slice(field);
+        }
+        out
+    }
+
+    fn valid_raw(secret: &[u8], issuer: &[u8], account: &[u8], period: u32) -> Vec<u8> {
+        raw_record(1, 1, 1, 6, period, 0, secret, issuer, account)
+    }
+
+    fn raw_payload(body: &[u8], record_count: u32) -> Vec<u8> {
+        let mut out = PAYLOAD_MAGIC.to_vec();
+        out.extend_from_slice(&PAYLOAD_VERSION.to_be_bytes());
+        out.extend_from_slice(&0_u16.to_be_bytes());
+        out.extend_from_slice(&(body.len() as u32).to_be_bytes());
+        out.extend_from_slice(&record_count.to_be_bytes());
+        out.extend_from_slice(body);
+        out
+    }
+
+    fn decode_one(record: &[u8]) -> VaultResult<Payload> {
+        Payload::decode(&raw_payload(record, 1))
+    }
+
+    #[test]
+    fn raw_builder_matches_encoder() {
+        let raw = raw_payload(
+            &valid_raw(
+                b"12345678901234567890",
+                b"Example",
+                b"alice@example.com",
+                30,
+            ),
+            1,
+        );
+        assert_eq!(&raw[..], &payload().encode().expect("encode")[..]);
+    }
+
+    #[test]
+    fn record_decode_enforces_every_length_and_value_bound() {
+        let ok = |secret: &[u8], issuer: &[u8], account: &[u8], period| {
+            decode_one(&valid_raw(secret, issuer, account, period))
+        };
+        let max_secret = vec![0xa5; MAX_SECRET_BYTES];
+        let max_string = vec![b'x'; MAX_STRING_BYTES];
+
+        // Inclusive boundaries are accepted.
+        assert!(ok(&[1], b"", b"a", MIN_PERIOD_SECONDS).is_ok());
+        assert!(ok(&max_secret, &max_string, &max_string, MAX_PERIOD_SECONDS).is_ok());
+
+        // One past each boundary is rejected as corruption.
+        let cases: [(VaultResult<Payload>, &str); 7] = [
+            (ok(&[], b"i", b"a", 30), "secret length"),
+            (
+                ok(&vec![0; MAX_SECRET_BYTES + 1], b"i", b"a", 30),
+                "secret length",
+            ),
+            (
+                ok(&[1], &vec![b'x'; MAX_STRING_BYTES + 1], b"a", 30),
+                "issuer length",
+            ),
+            (ok(&[1], b"i", b"", 30), "account length"),
+            (
+                ok(&[1], b"i", &vec![b'x'; MAX_STRING_BYTES + 1], 30),
+                "account length",
+            ),
+            (ok(&[1], b"i", b"a", 0), "totp period"),
+            (ok(&[1], b"i", b"a", MAX_PERIOD_SECONDS + 1), "totp period"),
+        ];
+        for (result, reason) in cases {
+            assert_eq!(result, Err(VaultError::Corrupt(reason)), "{reason}");
+        }
+
+        assert_eq!(
+            ok(&[1], b"i", &[0xff, 0xfe], 30),
+            Err(VaultError::Corrupt("account utf8"))
+        );
+        assert_eq!(
+            decode_one(&raw_record(2, 1, 1, 6, 30, 0, &[1], b"i", b"a")),
+            Err(VaultError::Corrupt("unknown record type"))
+        );
+        assert_eq!(
+            decode_one(&raw_record(0, 1, 1, 6, 30, 0, &[1], b"i", b"a")),
+            Err(VaultError::Corrupt("unknown record type"))
+        );
+    }
+
+    #[test]
+    fn payload_decode_enforces_count_and_size_limits() {
+        let mut bytes = raw_payload(&[], 0);
+        bytes[12..16].copy_from_slice(&(MAX_RECORDS as u32 + 1).to_be_bytes());
+        assert_eq!(
+            Payload::decode(&bytes),
+            Err(VaultError::ResourceLimit("record count"))
+        );
+
+        let mut bytes = raw_payload(&[], 0);
+        let too_big = (MAX_PAYLOAD_BYTES - PAYLOAD_HEADER_LEN + 1) as u32;
+        bytes[8..12].copy_from_slice(&too_big.to_be_bytes());
+        assert_eq!(
+            Payload::decode(&bytes),
+            Err(VaultError::ResourceLimit("payload length"))
+        );
+
+        // record_count smaller than the records present: trailing bytes.
+        let record = valid_raw(&[1], b"i", b"a", 30);
+        let mut two = record.clone();
+        two.extend_from_slice(&record);
+        assert_eq!(
+            Payload::decode(&raw_payload(&two, 1)),
+            Err(VaultError::Corrupt("trailing payload bytes"))
+        );
+        assert_eq!(
+            Payload::decode(&raw_payload(&two, 2)).map(|p| p.len()),
+            Ok(2)
+        );
+    }
+
+    #[test]
+    fn encoder_refuses_more_than_max_records() {
+        let mut payload = Payload::new();
+        for _ in 0..MAX_RECORDS {
+            payload
+                .push(
+                    OtpRecord::hotp(
+                        Algorithm::Sha1,
+                        Digits::Six,
+                        0,
+                        vec![1],
+                        String::new(),
+                        "a".to_owned(),
+                    )
+                    .expect("record"),
+                )
+                .expect("push");
+        }
+        let extra = OtpRecord::hotp(
+            Algorithm::Sha1,
+            Digits::Six,
+            0,
+            vec![1],
+            String::new(),
+            "a".to_owned(),
+        )
+        .expect("record");
+        assert_eq!(
+            payload.push(extra),
+            Err(VaultError::ResourceLimit("record count"))
+        );
+        let encoded = payload.encode().expect("encode at the limit");
+        assert_eq!(Payload::decode(&encoded).map(|p| p.len()), Ok(MAX_RECORDS));
+    }
+
+    /// Fixed-seed xorshift64*, same approach as otp-core property tests.
+    struct XorShift(u64);
+
+    impl XorShift {
+        fn next(&mut self) -> u64 {
+            self.0 ^= self.0 >> 12;
+            self.0 ^= self.0 << 25;
+            self.0 ^= self.0 >> 27;
+            self.0.wrapping_mul(0x2545_f491_4f6c_dd1d)
+        }
+
+        fn below(&mut self, bound: usize) -> usize {
+            (self.next() % bound as u64) as usize
+        }
+    }
+
+    /// Decoding either fails with a classified error or yields a payload that
+    /// re-encodes to exactly the same bytes. It never panics.
+    fn check_payload_bytes(bytes: &[u8]) {
+        match Payload::decode(bytes) {
+            Ok(decoded) => {
+                let encoded = decoded.encode().expect("re-encode");
+                assert_eq!(&encoded[..], bytes, "decode/encode must be canonical");
+            }
+            Err(error) => assert!(matches!(
+                error,
+                VaultError::Corrupt(_) | VaultError::Unsupported(_) | VaultError::ResourceLimit(_)
+            )),
+        }
+    }
+
+    fn check_header_bytes(bytes: &[u8]) {
+        match Header::parse(bytes) {
+            Ok(parsed) => assert_eq!(&parsed.encode()[..], bytes, "canonical header"),
+            Err(error) => assert!(matches!(
+                error,
+                VaultError::Corrupt(_) | VaultError::Unsupported(_) | VaultError::ResourceLimit(_)
+            )),
+        }
+    }
+
+    #[test]
+    fn decoders_never_panic_on_truncation_and_bit_flips() {
+        let mut mixed = payload();
+        mixed
+            .push(
+                OtpRecord::hotp(
+                    Algorithm::Sha512,
+                    Digits::Eight,
+                    u64::MAX,
+                    vec![0xff; 40],
+                    "Пример".to_owned(),
+                    "用户@example.test".to_owned(),
+                )
+                .expect("record"),
+            )
+            .expect("push");
+        let payload_bytes = mixed.encode().expect("encode");
+        let header_bytes = header().encode();
+
+        for len in 0..=payload_bytes.len() {
+            check_payload_bytes(&payload_bytes[..len]);
+        }
+        for bit in 0..payload_bytes.len() * 8 {
+            let mut flipped = payload_bytes.to_vec();
+            flipped[bit / 8] ^= 1 << (bit % 8);
+            check_payload_bytes(&flipped);
+        }
+        for len in 0..=HEADER_LEN {
+            check_header_bytes(&header_bytes[..len]);
+        }
+        for bit in 0..HEADER_LEN * 8 {
+            let mut flipped = header_bytes;
+            flipped[bit / 8] ^= 1 << (bit % 8);
+            check_header_bytes(&flipped);
+        }
+    }
+
+    #[test]
+    fn decoders_never_panic_on_random_input() {
+        let mut rng = XorShift(0x5641_554c_5430_3034); // "VAULT004"
+        let template = payload().encode().expect("encode");
+        for _ in 0..20_000 {
+            let len = rng.below(320);
+            let mut bytes: Vec<u8> = (0..len).map(|_| rng.next() as u8).collect();
+            // Half of the inputs keep a valid payload prefix so that record
+            // parsing, not just the magic check, is exercised.
+            if rng.next() & 1 == 0 && len >= PAYLOAD_HEADER_LEN {
+                bytes[..PAYLOAD_HEADER_LEN].copy_from_slice(&template[..PAYLOAD_HEADER_LEN]);
+                let body = (len - PAYLOAD_HEADER_LEN) as u32;
+                bytes[8..12].copy_from_slice(&body.to_be_bytes());
+                bytes[12..16].copy_from_slice(&(rng.below(4) as u32).to_be_bytes());
+            }
+            check_payload_bytes(&bytes);
+
+            let mut header_bytes = [0_u8; HEADER_LEN];
+            header_bytes.iter_mut().for_each(|b| *b = rng.next() as u8);
+            if rng.next() & 1 == 0 {
+                header_bytes[..12].copy_from_slice(&header().encode()[..12]);
+            }
+            check_header_bytes(&header_bytes);
+        }
+    }
 }
