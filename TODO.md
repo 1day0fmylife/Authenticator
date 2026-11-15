@@ -15,9 +15,9 @@
 
 ## P0 — общий OTP protocol core
 
-- [ ] **OTP-001** Подготовить общие публичные RFC 4226 / RFC 6238 векторы в `tests/vectors/`. **Готово:** SHA-1/256/512, временные границы, HOTP counters, 6/8 digits, собственные и независимые проверочные реализации.
+- [x] **OTP-001** Подготовить общие публичные RFC 4226 / RFC 6238 векторы в `tests/vectors/`. **Готово:** SHA-1/256/512, временные границы, HOTP counters, 6/8 digits, собственные и независимые проверочные реализации. → 71 вектор в [`tests/vectors/`](tests/vectors/README.md); независимая проверка `cd server && go run ./cmd/verify-vectors` (stdlib Go, Python не используется).
 - [ ] **OTP-002** Реализовать `desktop/crates/otp-core` на Rust без GUI и сетевых API. **Готово:** проходят RFC vectors и property tests; нет unsafe, кроме отдельно одобренных участков.
-- [ ] **OTP-003** Реализовать независимый Go OTP package на стандартной библиотеке. **Готово:** те же RFC vectors, отсутствие переполнений/ошибок mod/div, тесты window policy и constant-time compare.
+- [x] **OTP-003** Реализовать независимый Go OTP package на стандартной библиотеке. **Готово:** те же RFC vectors, отсутствие переполнений/ошибок mod/div, тесты window policy и constant-time compare. → [`server/internal/otp`](server/internal/otp/otp.go): 71 shared vector test, границы времени, overflow counter, skew 0…2, constant-time compare; `go test -race ./...` пройден.
 - [ ] **OTP-004** Разработать строгий `otpauth://` parser/generator. **Готово:** поддержка issuer/account, URI encoding, digit/period/algorithm/counter, контроль длины, отказ на противоречиях и некорректных полях.
 - [ ] **OTP-005** Подключить fuzzing OTP/URI и CI matrix. **Готово:** invalid input не приводит к panic/crash/OOM; проверки запускаются offline.
 

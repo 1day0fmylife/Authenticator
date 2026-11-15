@@ -1,6 +1,6 @@
 # Authenticator
 
-**Статус:** architecture bootstrap / draft v0.2. На текущий момент опубликована документация, программные компоненты **ещё не реализованы**.
+**Статус:** architecture bootstrap / draft v0.3. Документация и security policy опубликованы. Реализован **только Go OTP core** (stdlib) с общими RFC-векторами; desktop vault, GUI и HTTP API verifier ещё не реализованы.
 
 Authenticator — независимая open-source платформа второго фактора:
 
@@ -81,23 +81,23 @@ Authenticator — независимая open-source платформа втор
 - Не реализуем собственные криптографические алгоритмы. Не заявляем об абсолютной защите от компрометации ОС или о фишинг-устойчивости TOTP.
 - Сетевой сервис, мобильная часть и синхронизация не должны увеличивать TCB локального desktop генератора.
 
-## Планируемая структура репозитория
+## Структура репозитория
 
 ```text
-desktop/crates/otp-core/    # Rust core RFC4226/6238
-desktop/crates/vault/       # encrypted vault + backups
-desktop/crates/app-core/    # domain/use cases
-desktop/crates/app-cli/     # headless test/maintenance tool
-desktop/crates/app-gui/     # GUI isolated behind interfaces; framework TBD
-server/                    # Go MFA-verifier
-api/                       # OpenAPI
-tests/vectors/             # shared RFC test fixtures
+desktop/crates/otp-core/    # Rust core RFC4226/6238 (не создан)
+desktop/crates/vault/       # encrypted vault + backups (не создан)
+desktop/crates/app-core/    # domain/use cases (не создан)
+desktop/crates/app-cli/     # headless test/maintenance tool (не создан)
+desktop/crates/app-gui/     # GUI isolated behind interfaces; framework TBD (не создан)
+server/                    # Go MFA-verifier; сейчас только internal/otp и cmd/verify-vectors
+api/                       # OpenAPI (не создан)
+tests/vectors/             # shared RFC test fixtures (созданы)
 security/                  # threat model, ADR, supply-chain policy
 packaging/                 # Windows/Ubuntu offline releases
-README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md
+README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 ```
 
-Папки с исходным кодом — **план**, не созданные компоненты.
+`server/internal/otp` и `tests/vectors` уже существуют; остальные каталоги с исходным кодом — **план**.
 
 ## Порядок реализации
 

@@ -1,0 +1,197 @@
+{
+  "schema": 1,
+  "kind": "hotp",
+  "description": "HOTP RFC 4226 vectors for Rust and Go implementations. Test secrets are public RFC values, not real credentials.",
+  "source_documents": [
+    "RFC 4226: HOTP: An HMAC-Based One-Time Password Algorithm, Appendix D"
+  ],
+  "secrets": {
+    "rfc4226-ascii": {
+      "ascii": "12345678901234567890",
+      "base32": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+      "note": "public RFC 4226 Appendix D test secret"
+    }
+  },
+  "vectors": [
+    {
+      "id": "rfc4226-hotp-0-6",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "counter": 0,
+      "code": "755224",
+      "provenance": "RFC 4226 Appendix D (published test value)"
+    },
+    {
+      "id": "rfc4226-hotp-1-6",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "counter": 1,
+      "code": "287082",
+      "provenance": "RFC 4226 Appendix D (published test value)"
+    },
+    {
+      "id": "rfc4226-hotp-2-6",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "counter": 2,
+      "code": "359152",
+      "provenance": "RFC 4226 Appendix D (published test value)"
+    },
+    {
+      "id": "rfc4226-hotp-3-6",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "counter": 3,
+      "code": "969429",
+      "provenance": "RFC 4226 Appendix D (published test value)"
+    },
+    {
+      "id": "rfc4226-hotp-4-6",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "counter": 4,
+      "code": "338314",
+      "provenance": "RFC 4226 Appendix D (published test value)"
+    },
+    {
+      "id": "rfc4226-hotp-5-6",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "counter": 5,
+      "code": "254676",
+      "provenance": "RFC 4226 Appendix D (published test value)"
+    },
+    {
+      "id": "rfc4226-hotp-6-6",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "counter": 6,
+      "code": "287922",
+      "provenance": "RFC 4226 Appendix D (published test value)"
+    },
+    {
+      "id": "rfc4226-hotp-7-6",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "counter": 7,
+      "code": "162583",
+      "provenance": "RFC 4226 Appendix D (published test value)"
+    },
+    {
+      "id": "rfc4226-hotp-8-6",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "counter": 8,
+      "code": "399871",
+      "provenance": "RFC 4226 Appendix D (published test value)"
+    },
+    {
+      "id": "rfc4226-hotp-9-6",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "counter": 9,
+      "code": "520489",
+      "provenance": "RFC 4226 Appendix D (published test value)"
+    },
+    {
+      "id": "rfc4226-hotp-0-8",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "counter": 0,
+      "code": "84755224",
+      "provenance": "derived: same RFC 4226 dynamic truncation, modulo 10^8"
+    },
+    {
+      "id": "rfc4226-hotp-1-8",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "counter": 1,
+      "code": "94287082",
+      "provenance": "derived: same RFC 4226 dynamic truncation, modulo 10^8"
+    },
+    {
+      "id": "rfc4226-hotp-2-8",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "counter": 2,
+      "code": "37359152",
+      "provenance": "derived: same RFC 4226 dynamic truncation, modulo 10^8"
+    },
+    {
+      "id": "rfc4226-hotp-3-8",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "counter": 3,
+      "code": "26969429",
+      "provenance": "derived: same RFC 4226 dynamic truncation, modulo 10^8"
+    },
+    {
+      "id": "rfc4226-hotp-4-8",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "counter": 4,
+      "code": "40338314",
+      "provenance": "derived: same RFC 4226 dynamic truncation, modulo 10^8"
+    },
+    {
+      "id": "rfc4226-hotp-5-8",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "counter": 5,
+      "code": "68254676",
+      "provenance": "derived: same RFC 4226 dynamic truncation, modulo 10^8"
+    },
+    {
+      "id": "rfc4226-hotp-6-8",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "counter": 6,
+      "code": "18287922",
+      "provenance": "derived: same RFC 4226 dynamic truncation, modulo 10^8"
+    },
+    {
+      "id": "rfc4226-hotp-7-8",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "counter": 7,
+      "code": "82162583",
+      "provenance": "derived: same RFC 4226 dynamic truncation, modulo 10^8"
+    },
+    {
+      "id": "rfc4226-hotp-8-8",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "counter": 8,
+      "code": "73399871",
+      "provenance": "derived: same RFC 4226 dynamic truncation, modulo 10^8"
+    },
+    {
+      "id": "rfc4226-hotp-9-8",
+      "secret": "rfc4226-ascii",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "counter": 9,
+      "code": "45520489",
+      "provenance": "derived: same RFC 4226 dynamic truncation, modulo 10^8"
+    }
+  ]
+}

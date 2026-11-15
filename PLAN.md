@@ -47,13 +47,15 @@ desktop/
     app-cli/        # тестирование, обслуживаемые offline команды
   tests/
 server/
-  cmd/authenticator-mfa/
-  internal/{api,application,domain,storage,security}/
-  migrations/
+  cmd/authenticator-mfa/   # план
+  cmd/verify-vectors/      # создан: независимая проверка shared vectors
+  internal/otp/            # создан: RFC 4226/6238 (stdlib)
+  internal/{api,application,domain,storage,security}/  # план
+  migrations/              # план
 api/
-  openapi.yaml
+  openapi.yaml             # план
 tests/
-  vectors/
+  vectors/                 # создан: rfc4226/rfc6238 + README
 security/
   threat-model.md
   supply-chain.md
@@ -64,7 +66,7 @@ packaging/
 README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 ```
 
-Папки с исходным кодом — **план**, не созданные компоненты; `security/` уже содержит policy-документы. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
+Созданы `server/internal/otp`, `server/cmd/verify-vectors`, `tests/vectors` и `security/` policy-документы; остальные папки с исходным кодом — **план**. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
 
 **GUI Dependency Gate до выбора:**
 1. Сделать по одному маленькому Rust-прототипу egui/eframe и Slint для Windows + Ubuntu.
