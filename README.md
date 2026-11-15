@@ -1,6 +1,6 @@
 # Authenticator
 
-**Статус:** architecture bootstrap / draft v0.3. Документация и security policy опубликованы. Реализован **только Go OTP core** (stdlib) с общими RFC-векторами; desktop vault, GUI и HTTP API verifier ещё не реализованы.
+**Статус:** architecture bootstrap / draft v0.4. Документация и security policy опубликованы. Реализованы **Go и Rust OTP core** (RFC 4226/6238) с общими векторами; desktop vault, GUI и HTTP API verifier ещё не реализованы.
 
 Authenticator — независимая open-source платформа второго фактора:
 
@@ -27,7 +27,7 @@ Authenticator — независимая open-source платформа втор
 | Desktop OTP, vault и application logic | **Rust stable**; отдельные crates в одном workspace | **P0** |
 | Desktop GUI | Rust-native: **egui/eframe** или **Slint**; выбор после измерения dependency graph/лицензий/сборки | **P0**, ADR открыт |
 | Desktop storage | Один версионированный AEAD-encrypted vault-файл, без обязательной SQLite | **P0** |
-| Desktop crypto | Проверенные RustCrypto crates, Argon2id и AEAD по отдельному crypto ADR | **P0** |
+| Desktop crypto | RustCrypto crates, Argon2id, XChaCha20-Poly1305 — [ADR-003](security/adr/0003-crypto.md) | **P0**, формат vault — ADR-004 |
 | Сервер verifier | **Go**, стандартный `net/http` + `crypto/*` | **P0** |
 | БД сервера | PostgreSQL с одним закреплённым драйвером, SQL migrations | **P0** |
 | Интеграции | HTTPS/JSON, OpenAPI; примеры FastAPI и Go | P1 |
@@ -84,7 +84,7 @@ Authenticator — независимая open-source платформа втор
 ## Структура репозитория
 
 ```text
-desktop/crates/otp-core/    # Rust core RFC4226/6238 (не создан)
+desktop/crates/otp-core/    # Rust core RFC4226/6238 (создан)
 desktop/crates/vault/       # encrypted vault + backups (не создан)
 desktop/crates/app-core/    # domain/use cases (не создан)
 desktop/crates/app-cli/     # headless test/maintenance tool (не создан)
@@ -97,7 +97,7 @@ packaging/                 # Windows/Ubuntu offline releases
 README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 ```
 
-`server/internal/otp` и `tests/vectors` уже существуют; остальные каталоги с исходным кодом — **план**.
+`desktop/crates/otp-core`, `server/internal/otp`, `server/cmd/verify-vectors` и `tests/vectors` уже существуют; остальные каталоги с исходным кодом — **план**.
 
 ## Порядок реализации
 
@@ -115,6 +115,7 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 - [CLAUDE.md](CLAUDE.md) — дополнительные инструкции для Claude Code.
 - [security/threat-model.md](security/threat-model.md) — активы, акторы, trust boundaries, угрозы и остаточные риски.
 - [security/supply-chain.md](security/supply-chain.md) — политика зависимостей, toolchain, SBOM и offline build.
+- [security/adr/0003-crypto.md](security/adr/0003-crypto.md) — принятые crypto crates, AEAD, Argon2id и ключевой envelope.
 - [SECURITY.md](SECURITY.md) — как сообщить об уязвимости и политика раскрытия.
 
 **Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP, затем спецификация и реализация vault и серверного verifier.

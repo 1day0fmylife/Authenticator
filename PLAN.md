@@ -1,6 +1,6 @@
 # PLAN.md — архитектура и дорожная карта Authenticator
 
-> Статус: **Architecture Draft v0.2**, 15.11.2026. Это план, а не утверждение о готовности программного обеспечения.  
+> Статус: **Architecture Draft v0.4**, 15.11.2026. Это план, а не утверждение о готовности программного обеспечения.
 > Основные приоритеты: **Windows и Ubuntu desktop + независимый MFA-сервер**. Мобильные приложения — **P3**, после стабилизации.
 
 ## 1. Цель
@@ -21,7 +21,7 @@
 | Desktop domain, vault, OTP | **Rust** stable; workspace с отдельными core/vault/GUI crates | Принято |
 | Desktop GUI | **Rust-native**, кандидаты **egui/eframe** и **Slint**; финальный выбор после GUI Dependency Gate | Открытый ADR |
 | Desktop storage | **Версионированный зашифрованный файл**; сначала без SQLite | Принято как цель MVP |
-| Desktop crypto | Проверенные RustCrypto crates (HMAC/SHA, Argon2id, AEAD, CSPRNG), ограниченный перечень после ревью | Принцип принят; конкретные crates — ADR |
+| Desktop crypto | Проверенные RustCrypto crates (HMAC/SHA, Argon2id, XChaCha20-Poly1305, CSPRNG), ограниченный перечень | Принято: ADR-003 |
 | Go MFA backend | Go standard library + PostgreSQL, один проверенный драйвер | Принято |
 | External API | JSON over HTTPS, OpenAPI, независимый от framework контракт | Принято |
 | Packaging | Windows и Ubuntu LTS; подписанные артефакты, SBOM, офлайн-сборка | Обязательная цель релиза |
@@ -40,7 +40,7 @@
 ```text
 desktop/
   crates/
-    otp-core/       # RFC 4226/6238, модель записи, URI parser (без GUI)
+    otp-core/       # создан: RFC 4226/6238 (без GUI/storage/network)
     vault/          # формат файла, AEAD, KDF, persistence, recovery
     app-core/       # use cases, traits, state machine, ошибки
     app-gui/        # только представление и OS integration; framework TBD
@@ -60,13 +60,14 @@ security/
   threat-model.md
   supply-chain.md
   adr/0001-independence.md
+  adr/0003-crypto.md       # создан: crates, AEAD, Argon2id, envelope
 packaging/
   windows/
   ubuntu/
 README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 ```
 
-Созданы `server/internal/otp`, `server/cmd/verify-vectors`, `tests/vectors` и `security/` policy-документы; остальные папки с исходным кодом — **план**. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
+Созданы `desktop/crates/otp-core`, `server/internal/otp`, `server/cmd/verify-vectors`, `tests/vectors`, `security/adr/0001-independence.md` и `security/adr/0003-crypto.md`; остальные папки с исходным кодом — **план**. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
 
 **GUI Dependency Gate до выбора:**
 1. Сделать по одному маленькому Rust-прототипу egui/eframe и Slint для Windows + Ubuntu.
@@ -93,9 +94,11 @@ HOTP RFC 4226, TOTP RFC 6238, `otpauth://`; алгоритмы SHA-1 (для с�
 
 ### Криптография и формат vault (ADR-003, ADR-004)
 
+[ADR-003](security/adr/0003-crypto.md) принят: **XChaCha20-Poly1305**, **Argon2id** (v19, `m=64 MiB`, `t=3`, `p=1`, salt 16, key 32), прямой ключевой envelope без HKDF в v1, точные pinned-версии и проверенные RFC-векторы. Бинарная раскладка файла и recovery-сценарии — ADR-004; до него код vault не пишется.
+
 Модель **offline, portable, fail-closed**:
 - В v1 один защищенный файл: versioned binary envelope + аутентифицированный зашифрованный payload с записями. Не считать само файловое шифрование эквивалентом защиты памяти/процесса.
-- Использовать CSPRNG ОС, **Argon2id** для ключа из парольной фразы и **XChaCha20-Poly1305 либо AES-256-GCM** по отдельному crypto ADR. Не комбинировать/придумывать свои криптосхемы.
+- Использовать CSPRNG ОС, **Argon2id** для ключа из парольной фразы и **XChaCha20-Poly1305**; схема и параметры зафиксированы ADR-003. Не комбинировать/придумывать свои криптосхемы.
 - KDF salt/params, формат, версия, nonce и AAD задаются спецификацией до кода. Установить жёсткие лимиты на размер, число записей, KDF cost и длину строк.
 - Сохранение: write → fsync → atomic rename с учетом Windows/Ubuntu semantics, резервная копия, отказоустойчивость/rollback-тесты. Ошибки разблокировки и поврежденный файл не должны создавать «пустой vault».
 - Первый ключ **не обязан** храниться в Windows DPAPI / Linux Secret Service; удобное OS-unlock — отдельная P1-функция с независимым recovery path. Потеря Keyring **не удаляет** данные.
