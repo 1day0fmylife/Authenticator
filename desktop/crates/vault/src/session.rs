@@ -187,6 +187,20 @@ impl UnlockedVault {
         new: &[u8],
         params: KdfParams,
     ) -> VaultResult<()> {
+        let rekey = self.prepare_rekey(current, new, params)?;
+        self.apply_rekey(rekey);
+        Ok(())
+    }
+
+    /// Verifies `current` and derives new key material without changing the
+    /// session. Persistence seals with it first and applies it only after the
+    /// new file is in place (ADR-004 §8.4).
+    pub(crate) fn prepare_rekey(
+        &self,
+        current: &[u8],
+        new: &[u8],
+        params: KdfParams,
+    ) -> VaultResult<Rekey> {
         validate_password(current)?;
         validate_new_password(new)?;
         params.validate()?;
@@ -198,12 +212,33 @@ impl UnlockedVault {
 
         let salt = random_salt()?;
         let key = derive_key(new, &salt, params)?;
-        // Commit only after every fallible step succeeded.
-        self.key = key;
-        self.salt = salt;
-        self.params = params;
-        Ok(())
+        Ok(Rekey { key, salt, params })
     }
+
+    /// Seals the current payload under prepared key material (fresh nonce).
+    pub(crate) fn seal_rekeyed(&self, rekey: &Rekey) -> VaultResult<Vec<u8>> {
+        seal_with_key(
+            &rekey.key,
+            &self.payload,
+            rekey.params,
+            rekey.salt,
+            random_nonce()?,
+        )
+    }
+
+    /// Switches the session to prepared key material; the old key is zeroized.
+    pub(crate) fn apply_rekey(&mut self, rekey: Rekey) {
+        self.key = rekey.key;
+        self.salt = rekey.salt;
+        self.params = rekey.params;
+    }
+}
+
+/// New key material produced by a verified password change, not yet applied.
+pub(crate) struct Rekey {
+    key: Zeroizing<[u8; KEY_LEN]>,
+    salt: [u8; SALT_LEN],
+    params: KdfParams,
 }
 
 impl fmt::Debug for UnlockedVault {
