@@ -175,7 +175,7 @@
 | PostgreSQL драйвер | не выбран (ADR-005/SRV-002) |
 | Vendor/mirror | отсутствует |
 | SBOM/подписи/CI | отсутствуют |
-| Лицензия проекта | не выбрана (PLAN §7) |
+| Лицензия проекта | `MIT OR Apache-2.0` (LICENSE-MIT, LICENSE-APACHE); зависимости должны быть с ней совместимы |
 | Security disclosure | см. [SECURITY.md](../SECURITY.md) |
 
 Ни одна строка выше не должна трактоваться как «проверено». До выполнения SUP-001…SUP-004 production-релиз невозможен.
