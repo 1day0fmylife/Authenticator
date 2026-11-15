@@ -1,6 +1,6 @@
 # Supply-chain policy — Authenticator
 
-**Статус:** Draft v0.1, 15.11.2026.
+**Статус:** Draft v0.3, 15.11.2026.
 **Область:** Rust desktop workspace, Go MFA verifier, CI/CD, toolchains, релизные артефакты и обновления.
 **Связанные документы:** [threat-model](threat-model.md), [PLAN](../PLAN.md), [TODO](../TODO.md), [AGENTS](../AGENTS.md), ADR в `security/adr/`.
 
@@ -210,3 +210,4 @@ go list -deps ./...
 | --- | --- | --- |
 | 15.11.2026 | 0.1 | Первичная политика: бюджет, allowlist, review, toolchain, offline build, SBOM, SLA, enforcement |
 | 15.11.2026 | 0.2 | ADR-003: бюджет `otp-core` уточнён до ≤5 прямых / ≤13 транзитивных по фактическому измерению `cargo tree` |
+| 15.11.2026 | 0.3 | VAULT-001: измерен граф `vault` (Linux x86_64) — 6 прямых / 28 внешних normal+build (33 с dev); в рамках бюджета ≤8 / ≤40. Свой `build.rs` у crate нет; в графе `build.rs` есть у `generic-array`, `getrandom`, `libc` (3 из 28, ≈11% < 25%), их review по п. 5 ещё не оформлен. У `argon2` включён feature `zeroize` (новых пакетов не добавляет) |

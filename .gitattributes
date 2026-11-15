@@ -1,0 +1,2 @@
+# Vault fixtures are exact bytes (SHA-256 pinned in manifest.json): no EOL conversion or text diff.
+*.avault binary

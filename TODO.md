@@ -23,7 +23,7 @@
 
 ## P0 — локальный Rust vault
 
-- [ ] **VAULT-001** Документировать file format v1 и KDF/AEAD/backup policy до реализации. **Готово:** бинарная спецификация и тестовые зашифрованные образцы формата.
+- [x] **VAULT-001** Документировать file format v1 и KDF/AEAD/backup policy до реализации. **Готово:** бинарная спецификация и тестовые зашифрованные образцы формата. → [ADR-004](security/adr/0004-vault.md) + [`desktop/crates/vault`](desktop/crates/vault/src/lib.rs): strict envelope/payload/record v1, Argon2id + XChaCha20-Poly1305, `#![forbid(unsafe_code)]`; 6 синтетических fixtures в [`tests/vault/v1`](tests/vault/v1/README.md) (пустой, TOTP SHA-1/256/512, HOTP, границы лимитов) и conformance/negative тесты. Выполнены `cargo fmt`, `clippy -D warnings`, `cargo test --locked` (24 unit + 6 integration), повторная генерация fixtures побайтово идентична, release `--frozen`. Persistence/CRUD/backup — VAULT-002…005.
 - [ ] **VAULT-002** Реализовать создание, lock/unlock, CRUD и изменение пароля. **Готово:** корректное шифрование всего payload, нет секретов/персональных полей в заголовке.
 - [ ] **VAULT-003** Реализовать write/fsync/atomic replace + crash consistency на Windows и Ubuntu. **Готово:** тесты отключения питания/прерванной записи/permission error/диска без места; предыдущая копия сохраняется.
 - [ ] **VAULT-004** Реализовать ограниченную сериализацию/десериализацию, максимальную длину входов, и error model. **Готово:** corrupted/wrong-password/unavailable различаются; ошибка никогда не создаёт пустой vault.

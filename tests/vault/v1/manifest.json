@@ -1,0 +1,192 @@
+{
+  "fixtures": [
+    {
+      "ciphertext_len": 32,
+      "file": "empty.avault",
+      "file_sha256": "2e90950ac266f4877d58d528fafda95f76dbd33d2f255242c2e5b77dae2180cd",
+      "file_size": 112,
+      "header_hex": "41564c54000100500001000000004c00000000020000000100000000101112131415161718191a1b1c1d1e1f101112131415161718191a1b1c1d1e1f2021222324252627000000000000002000000000",
+      "kdf": {
+        "id": "argon2id-v19",
+        "m_cost_kib": 19456,
+        "p_cost": 1,
+        "t_cost": 2
+      },
+      "name": "empty",
+      "nonce_hex": "101112131415161718191a1b1c1d1e1f2021222324252627",
+      "payload_hex": "41565031000100000000000000000000",
+      "records": [],
+      "salt_hex": "101112131415161718191a1b1c1d1e1f"
+    },
+    {
+      "ciphertext_len": 99,
+      "file": "totp-sha1.avault",
+      "file_sha256": "2d5ddc4c9e27ae94e257b58c489aeb397486c39b6016755f9b93f43b790b3da4",
+      "file_size": 179,
+      "header_hex": "41564c54000100500001000000004c00000000020000000100000000202122232425262728292a2b2c2d2e2f202122232425262728292a2b2c2d2e2f3031323334353637000000000000006300000000",
+      "kdf": {
+        "id": "argon2id-v19",
+        "m_cost_kib": 19456,
+        "p_cost": 1,
+        "t_cost": 2
+      },
+      "name": "totp-sha1",
+      "nonce_hex": "202122232425262728292a2b2c2d2e2f3031323334353637",
+      "payload_hex": "41565031000100000000004300000001010101060000001e00000000000000000014313233343536373839303132333435363738393000074578616d706c650012616c696365406578616d706c652e74657374",
+      "records": [
+        {
+          "account": "alice@example.test",
+          "algorithm": "SHA1",
+          "counter": 0,
+          "digits": 6,
+          "issuer": "Example",
+          "otp_type": "totp",
+          "period": 30,
+          "secret_hex": "3132333435363738393031323334353637383930"
+        }
+      ],
+      "salt_hex": "202122232425262728292a2b2c2d2e2f"
+    },
+    {
+      "ciphertext_len": 112,
+      "file": "totp-sha256.avault",
+      "file_sha256": "30c3485cdbe1e81917c047cbfb9f0aeb20c759a6519fc657fde45d456b0cb31a",
+      "file_size": 192,
+      "header_hex": "41564c54000100500001000000004c00000000020000000100000000303132333435363738393a3b3c3d3e3f303132333435363738393a3b3c3d3e3f4041424344454647000000000000007000000000",
+      "kdf": {
+        "id": "argon2id-v19",
+        "m_cost_kib": 19456,
+        "p_cost": 1,
+        "t_cost": 2
+      },
+      "name": "totp-sha256",
+      "nonce_hex": "303132333435363738393a3b3c3d3e3f4041424344454647",
+      "payload_hex": "41565031000100000000005000000001010102080000003c00000000000000000020010101010101010101010101010101010101010101010101010101010101010100074578616d706c650013736861323536406578616d706c652e74657374",
+      "records": [
+        {
+          "account": "sha256@example.test",
+          "algorithm": "SHA256",
+          "counter": 0,
+          "digits": 8,
+          "issuer": "Example",
+          "otp_type": "totp",
+          "period": 60,
+          "secret_hex": "0101010101010101010101010101010101010101010101010101010101010101"
+        }
+      ],
+      "salt_hex": "303132333435363738393a3b3c3d3e3f"
+    },
+    {
+      "ciphertext_len": 101,
+      "file": "totp-sha512.avault",
+      "file_sha256": "feb0ce274cc181843ddfced170775450796e5de54a53879abf4bd85c81ffabbd",
+      "file_size": 181,
+      "header_hex": "41564c54000100500001000000004c00000000020000000100000000404142434445464748494a4b4c4d4e4f404142434445464748494a4b4c4d4e4f5051525354555657000000000000006500000000",
+      "kdf": {
+        "id": "argon2id-v19",
+        "m_cost_kib": 19456,
+        "p_cost": 1,
+        "t_cost": 2
+      },
+      "name": "totp-sha512",
+      "nonce_hex": "404142434445464748494a4b4c4d4e4f5051525354555657",
+      "payload_hex": "41565031000100000000004500000001010103060001518000000000000000000015666978747572652d7368613531322d73656372657400074578616d706c650013736861353132406578616d706c652e74657374",
+      "records": [
+        {
+          "account": "sha512@example.test",
+          "algorithm": "SHA512",
+          "counter": 0,
+          "digits": 6,
+          "issuer": "Example",
+          "otp_type": "totp",
+          "period": 86400,
+          "secret_hex": "666978747572652d7368613531322d736563726574"
+        }
+      ],
+      "salt_hex": "404142434445464748494a4b4c4d4e4f"
+    },
+    {
+      "ciphertext_len": 97,
+      "file": "hotp.avault",
+      "file_sha256": "71e6e85507f9dff4d6b1349920264ae30fd73b512d8a08a15044dbaf90d260d1",
+      "file_size": 177,
+      "header_hex": "41564c54000100500001000000004c00000000020000000100000000505152535455565758595a5b5c5d5e5f505152535455565758595a5b5c5d5e5f6061626364656667000000000000006100000000",
+      "kdf": {
+        "id": "argon2id-v19",
+        "m_cost_kib": 19456,
+        "p_cost": 1,
+        "t_cost": 2
+      },
+      "name": "hotp",
+      "nonce_hex": "505152535455565758595a5b5c5d5e5f6061626364656667",
+      "payload_hex": "415650310001000000000041000000010102010600000000000000000000002a0013666978747572652d686f74702d73656372657400074578616d706c650011686f7470406578616d706c652e74657374",
+      "records": [
+        {
+          "account": "hotp@example.test",
+          "algorithm": "SHA1",
+          "counter": 42,
+          "digits": 6,
+          "issuer": "Example",
+          "otp_type": "hotp",
+          "period": 0,
+          "secret_hex": "666978747572652d686f74702d736563726574"
+        }
+      ],
+      "salt_hex": "505152535455565758595a5b5c5d5e5f"
+    },
+    {
+      "ciphertext_len": 1686,
+      "file": "mixed-boundaries.avault",
+      "file_sha256": "72387e54b2932c98d5dd027bec34b928fb2fd75cd18348ce5888950ca588d04a",
+      "file_size": 1766,
+      "header_hex": "41564c54000100500001000000010000000000030000000100000000606162636465666768696a6b6c6d6e6f606162636465666768696a6b6c6d6e6f7071727374757677000000000000069600000000",
+      "kdf": {
+        "id": "argon2id-v19",
+        "m_cost_kib": 65536,
+        "p_cost": 1,
+        "t_cost": 3
+      },
+      "name": "mixed-boundaries",
+      "nonce_hex": "606162636465666768696a6b6c6d6e6f7071727374757677",
+      "payload_hex": "41565031000100000000067600000003010101060000000100000000000000000001ab00000001780102020800000000ffffffffffffffff0400a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5010069696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969010061616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161010103080000001e00000000000000000013666978747572652d757466382d736563726574000cd09fd180d0b8d0bcd0b5d1800013e794a8e688b7406578616d706c652e74657374",
+      "records": [
+        {
+          "account": "x",
+          "algorithm": "SHA1",
+          "counter": 0,
+          "digits": 6,
+          "issuer": "",
+          "otp_type": "totp",
+          "period": 1,
+          "secret_hex": "ab"
+        },
+        {
+          "account": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "algorithm": "SHA256",
+          "counter": 18446744073709551615,
+          "digits": 8,
+          "issuer": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+          "otp_type": "hotp",
+          "period": 0,
+          "secret_hex": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5"
+        },
+        {
+          "account": "用户@example.test",
+          "algorithm": "SHA512",
+          "counter": 0,
+          "digits": 8,
+          "issuer": "Пример",
+          "otp_type": "totp",
+          "period": 30,
+          "secret_hex": "666978747572652d757466382d736563726574"
+        }
+      ],
+      "salt_hex": "606162636465666768696a6b6c6d6e6f"
+    }
+  ],
+  "format": "vault-v1",
+  "generated_by": "desktop/crates/vault/src/fixtures.rs (ignored test)",
+  "note": "All passwords, secrets and labels are public test values. Never store real credentials in fixtures.",
+  "password": "correct horse battery staple",
+  "synthetic": true
+}
