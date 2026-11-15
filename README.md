@@ -113,5 +113,8 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md
 - [TODO.md](TODO.md) — конкретные задачи с критериями приёмки, в порядке зависимостей.
 - [AGENTS.md](AGENTS.md) — обязательные правила всех coding agents.
 - [CLAUDE.md](CLAUDE.md) — дополнительные инструкции для Claude Code.
+- [security/threat-model.md](security/threat-model.md) — активы, акторы, trust boundaries, угрозы и остаточные риски.
+- [security/supply-chain.md](security/supply-chain.md) — политика зависимостей, toolchain, SBOM и offline build.
+- [SECURITY.md](SECURITY.md) — как сообщить об уязвимости и политика раскрытия.
 
 **Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP, затем спецификация и реализация vault и серверного verifier.

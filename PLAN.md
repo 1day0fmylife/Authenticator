@@ -27,9 +27,9 @@
 | Packaging | Windows и Ubuntu LTS; подписанные артефакты, SBOM, офлайн-сборка | Обязательная цель релиза |
 | Mobile | Android/iOS после desktop/server stable | P3 |
 
-### ADR-001 — Rust вместо C++ в desktop
+### ADR-001 — Rust-first desktop и независимость
 
-Выбор Rust обоснован безопасностью памяти и возможностью реализовать domain/vault без FFI и без C++ ABI. Это **не** устраняет supply-chain риски: Cargo dependency graph, build.rs, proc-macros, Rust toolchain и графическая библиотека остаются доверенной кодовой базой.
+Решение зафиксировано в [security/adr/0001-independence.md](security/adr/0001-independence.md). Выбор Rust обоснован безопасностью памяти и возможностью реализовать domain/vault без FFI и без C++ ABI. Это **не** устраняет supply-chain риски: Cargo dependency graph, build.rs, proc-macros, Rust toolchain и графическая библиотека остаются доверенной кодовой базой.
 
 Запрещено включать Qt/C++/WebEngine/Node.js/Electron как обязательные компоненты без отдельного сравнительного ADR и одобрения. Не использовать unsafe без документированных инвариантов, ревью и тестов.
 
@@ -57,14 +57,14 @@ tests/
 security/
   threat-model.md
   supply-chain.md
-  adr/
+  adr/0001-independence.md
 packaging/
   windows/
   ubuntu/
-README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md
+README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 ```
 
-Папки появятся в соответствующем этапе, сейчас существуют только документы. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
+Папки с исходным кодом — **план**, не созданные компоненты; `security/` уже содержит policy-документы. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
 
 **GUI Dependency Gate до выбора:**
 1. Сделать по одному маленькому Rust-прототипу egui/eframe и Slint для Windows + Ubuntu.
@@ -73,7 +73,9 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md
 4. Для Slint особо проверить требования выбранной лицензии и варианты backend; для eframe — графические и оконные зависимости; не путать небольшой egui core с полной стоимостью eframe.
 5. Зафиксировать результат и бюджет зависимостей в `security/adr/0002-gui.md`; GUI не должен влиять на тесты и API core.
 
-### ADR-003 — минимум сторонних зависимостей
+### Supply-chain policy — минимум сторонних зависимостей
+
+Полная политика, бюджет зависимостей и review-процесс: [security/supply-chain.md](security/supply-chain.md) (SEC-002). Ниже — краткие принципы.
 
 **Rust:** `Cargo.lock` обязателен, default-features отключать где оправдано, `cargo vendor` для релизной сборки, `cargo --frozen` и отключенный network в CI; каждый новый crate проверять по лицензии, источнику, владельцам, жизнеспособности, `build.rs`, unsafe и транзитивным зависимостям.
 
@@ -83,11 +85,11 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md
 
 Цель — **уменьшить доверенную поверхность**, а не механически довести число зависимостей до нуля. Не писать собственные криптографические примитивы. Не считать «прошёл CVE scan» доказательством безопасности.
 
-### ADR-004 — открытая совместимость
+### Совместимость и стандарты (ADR-001)
 
 HOTP RFC 4226, TOTP RFC 6238, `otpauth://`; алгоритмы SHA-1 (для совместимости), SHA-256, SHA-512, digits 6/8, period 30 с поддержкой валидируемых параметров; корректный HOTP counter. Строгий URI parser с ограничениями входа и отказом от неподдерживаемых параметров. Стандартные RFC test vectors обязательны. Пароль/секрет не записываются в логи.
 
-### ADR-005 — парольное шифрование vault, без обязательного Keyring
+### Криптография и формат vault (ADR-003, ADR-004)
 
 Модель **offline, portable, fail-closed**:
 - В v1 один защищенный файл: versioned binary envelope + аутентифицированный зашифрованный payload с записями. Не считать само файловое шифрование эквивалентом защиты памяти/процесса.
@@ -160,6 +162,8 @@ GET  /health/ready
 В SQL обязательно включить tenant-bound foreign keys, uniqueness, migrations и индексы. Схема пока проектная, не существует в БД. Idempotent confirmation и exact replay guard требуют отдельных транзакционных тестов.
 
 ## 5. Threat model и release gates
+
+Актуальный реестр активов, trust boundaries, угроз и остаточных рисков: [security/threat-model.md](security/threat-model.md) (SEC-001). Ниже — сводка.
 
 Угрозы: повреждение локального vault, кража зашифрованного backup и offline password guessing, компрометация desktop-процесса/ОС, фишинг TOTP, compromised MFA database или service identity, серверный replay, brute force, гонки, tenant IDOR, malware/typosquatting crates, malicious build scripts, подмена toolchain и обновлений, rollback/migration failure.
 

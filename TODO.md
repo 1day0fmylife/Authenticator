@@ -5,9 +5,9 @@
 ## P0 — документация и границы доверия
 
 - [x] **DOC-001** Создать стартовые README/PLAN/TODO/AGENTS/CLAUDE с Rust-first desktop + Go MFA verifier. **Готово:** ссылки между документами работают, мобильный приоритет явно P3.
-- [ ] **SEC-001** Опубликовать `security/threat-model.md` (desktop vault, OS, import, server, CI/CD, update). **Готово:** активы, атакующие, границы, допущения, угрозы, меры и остаточные риски описаны.
-- [ ] **SEC-002** Опубликовать `security/supply-chain.md`. **Готово:** budget/allowlist прямых и транзитивных зависимостей, требования к build scripts/proc-macros/unsafe, pinned tools, SBOM, offline ingestion/build, security disclosure.
-- [ ] **ADR-001** Утвердить независимость desktop и MFA verifier, стандарты RFC4226/6238 и модель ответственности. **Готово:** документирован ADR; отсутствует зависимость desktop от сервера и desktop-specific формата в API.
+- [x] **SEC-001** Опубликовать `security/threat-model.md` (desktop vault, OS, import, server, CI/CD, update). **Готово:** активы, атакующие, границы, допущения, угрозы, меры и остаточные риски описаны. → [`security/threat-model.md`](security/threat-model.md) (v0.1, меры `planned` до появления тестов).
+- [x] **SEC-002** Опубликовать `security/supply-chain.md`. **Готово:** budget/allowlist прямых и транзитивных зависимостей, требования к build scripts/proc-macros/unsafe, pinned tools, SBOM, offline ingestion/build, security disclosure. → [`security/supply-chain.md`](security/supply-chain.md), [`SECURITY.md`](SECURITY.md) (бюджет стартовый, зависимости ещё не выбраны).
+- [x] **ADR-001** Утвердить независимость desktop и MFA verifier, стандарты RFC4226/6238 и модель ответственности. **Готово:** документирован ADR; отсутствует зависимость desktop от сервера и desktop-specific формата в API. → [`security/adr/0001-independence.md`](security/adr/0001-independence.md).
 - [ ] **ADR-002** Выполнить сравнение egui/eframe vs Slint и зафиксировать выбор GUI. **Готово:** измерены обычные/build/dev/native зависимости, размеры бинарников, build scripts, лицензии, Wayland/X11, Windows GUI, backend graphics, accessibility и offline build. GUI не выбран только из эстетических соображений.
 - [ ] **ADR-003** Выбрать разрешённые RustCrypto crates, AEAD, параметры Argon2id и ключевой envelope. **Готово:** threat model, спецификация, license/dependency assessment и проверенные test vectors.
 - [ ] **ADR-004** Утвердить формат vault v1 и ключевые сценарии восстановления. **Готово:** открытая спецификация с версиями, limits, nonce/AAD, KDF migration, atomic writes, error handling.
