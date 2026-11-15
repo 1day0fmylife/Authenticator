@@ -1,6 +1,6 @@
 # Authenticator
 
-**Статус:** architecture bootstrap / draft v0.4. Документация и security policy опубликованы. Реализованы **Go и Rust OTP core** (RFC 4226/6238) с общими векторами; desktop vault, GUI и HTTP API verifier ещё не реализованы.
+**Статус:** architecture bootstrap / draft v0.5. Документация и security policy опубликованы. Реализованы **Go и Rust OTP core** (RFC 4226/6238) с общими векторами; формат desktop vault v1 специфицирован ([ADR-004](security/adr/0004-vault.md)), но код vault, GUI и HTTP API verifier ещё не реализованы.
 
 Authenticator — независимая open-source платформа второго фактора:
 
@@ -26,7 +26,7 @@ Authenticator — независимая open-source платформа втор
 | --- | --- | --- |
 | Desktop OTP, vault и application logic | **Rust stable**; отдельные crates в одном workspace | **P0** |
 | Desktop GUI | Rust-native: **egui/eframe** или **Slint**; выбор после измерения dependency graph/лицензий/сборки | **P0**, ADR открыт |
-| Desktop storage | Один версионированный AEAD-encrypted vault-файл, без обязательной SQLite | **P0** |
+| Desktop storage | Один версионированный AEAD-encrypted vault-файл, без обязательной SQLite — [ADR-004](security/adr/0004-vault.md) | **P0**, реализация не начата |
 | Desktop crypto | RustCrypto crates, Argon2id, XChaCha20-Poly1305 — [ADR-003](security/adr/0003-crypto.md) | **P0**, формат vault — ADR-004 |
 | Сервер verifier | **Go**, стандартный `net/http` + `crypto/*` | **P0** |
 | БД сервера | PostgreSQL с одним закреплённым драйвером, SQL migrations | **P0** |
@@ -116,6 +116,7 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 - [security/threat-model.md](security/threat-model.md) — активы, акторы, trust boundaries, угрозы и остаточные риски.
 - [security/supply-chain.md](security/supply-chain.md) — политика зависимостей, toolchain, SBOM и offline build.
 - [security/adr/0003-crypto.md](security/adr/0003-crypto.md) — принятые crypto crates, AEAD, Argon2id и ключевой envelope.
+- [security/adr/0004-vault.md](security/adr/0004-vault.md) — бинарный формат vault v1, лимиты, atomic write и восстановление.
 - [SECURITY.md](SECURITY.md) — как сообщить об уязвимости и политика раскрытия.
 
-**Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP, затем спецификация и реализация vault и серверного verifier.
+**Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP; спецификация vault v1 готова ([ADR-004](security/adr/0004-vault.md)), следующий шаг — fixtures и реализация vault, затем серверный verifier.

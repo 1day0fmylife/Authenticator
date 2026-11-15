@@ -1,6 +1,6 @@
 # PLAN.md — архитектура и дорожная карта Authenticator
 
-> Статус: **Architecture Draft v0.4**, 15.11.2026. Это план, а не утверждение о готовности программного обеспечения.
+> Статус: **Architecture Draft v0.5**, 15.11.2026. Это план, а не утверждение о готовности программного обеспечения.
 > Основные приоритеты: **Windows и Ubuntu desktop + независимый MFA-сервер**. Мобильные приложения — **P3**, после стабилизации.
 
 ## 1. Цель
@@ -61,13 +61,14 @@ security/
   supply-chain.md
   adr/0001-independence.md
   adr/0003-crypto.md       # создан: crates, AEAD, Argon2id, envelope
+  adr/0004-vault.md        # создан: формат vault v1, limits, recovery
 packaging/
   windows/
   ubuntu/
 README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 ```
 
-Созданы `desktop/crates/otp-core`, `server/internal/otp`, `server/cmd/verify-vectors`, `tests/vectors`, `security/adr/0001-independence.md` и `security/adr/0003-crypto.md`; остальные папки с исходным кодом — **план**. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
+Созданы `desktop/crates/otp-core`, `server/internal/otp`, `server/cmd/verify-vectors`, `tests/vectors`, `security/adr/0001-independence.md`, `security/adr/0003-crypto.md` и `security/adr/0004-vault.md`; остальные папки с исходным кодом — **план**. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
 
 **GUI Dependency Gate до выбора:**
 1. Сделать по одному маленькому Rust-прототипу egui/eframe и Slint для Windows + Ubuntu.
@@ -94,7 +95,7 @@ HOTP RFC 4226, TOTP RFC 6238, `otpauth://`; алгоритмы SHA-1 (для с�
 
 ### Криптография и формат vault (ADR-003, ADR-004)
 
-[ADR-003](security/adr/0003-crypto.md) принят: **XChaCha20-Poly1305**, **Argon2id** (v19, `m=64 MiB`, `t=3`, `p=1`, salt 16, key 32), прямой ключевой envelope без HKDF в v1, точные pinned-версии и проверенные RFC-векторы. Бинарная раскладка файла и recovery-сценарии — ADR-004; до него код vault не пишется.
+[ADR-003](security/adr/0003-crypto.md) принят: **XChaCha20-Poly1305**, **Argon2id** (v19, `m=64 MiB`, `t=3`, `p=1`, salt 16, key 32), прямой ключевой envelope без HKDF в v1, точные pinned-версии и проверенные RFC-векторы. [ADR-004](security/adr/0004-vault.md) фиксирует бинарный формат vault v1: 80-байтный envelope, версионированный payload/record, лимиты, AAD, atomic write, `.bak`, ошибки и восстановление. До VAULT-001 (fixtures) и VAULT-002 код vault не пишется.
 
 Модель **offline, portable, fail-closed**:
 - В v1 один защищенный файл: versioned binary envelope + аутентифицированный зашифрованный payload с записями. Не считать само файловое шифрование эквивалентом защиты памяти/процесса.
