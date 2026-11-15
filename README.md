@@ -1,6 +1,6 @@
 # Authenticator
 
-**Статус:** architecture bootstrap / draft v0.2. На текущий момент опубликована документация, программные компоненты **ещё не реализованы**.
+**Статус:** architecture bootstrap / draft v0.6. Документация и security policy опубликованы. Реализованы **Go и Rust OTP core** (RFC 4226/6238) с общими векторами; vault v1 зафиксирован ([ADR-004](security/adr/0004-vault.md)) и реализован на уровне **format/crypto + in-memory сессии** (create/unlock/CRUD/смена пароля) с fixtures, но без записи на диск (VAULT-003). GUI и HTTP API verifier ещё не реализованы.
 
 Authenticator — независимая open-source платформа второго фактора:
 
@@ -26,8 +26,8 @@ Authenticator — независимая open-source платформа втор
 | --- | --- | --- |
 | Desktop OTP, vault и application logic | **Rust stable**; отдельные crates в одном workspace | **P0** |
 | Desktop GUI | Rust-native: **egui/eframe** или **Slint**; выбор после измерения dependency graph/лицензий/сборки | **P0**, ADR открыт |
-| Desktop storage | Один версионированный AEAD-encrypted vault-файл, без обязательной SQLite | **P0** |
-| Desktop crypto | Проверенные RustCrypto crates, Argon2id и AEAD по отдельному crypto ADR | **P0** |
+| Desktop storage | Один версионированный AEAD-encrypted vault-файл, без обязательной SQLite — [ADR-004](security/adr/0004-vault.md) | **P0**, реализация не начата |
+| Desktop crypto | RustCrypto crates, Argon2id, XChaCha20-Poly1305 — [ADR-003](security/adr/0003-crypto.md) | **P0**, формат vault — ADR-004 |
 | Сервер verifier | **Go**, стандартный `net/http` + `crypto/*` | **P0** |
 | БД сервера | PostgreSQL с одним закреплённым драйвером, SQL migrations | **P0** |
 | Интеграции | HTTPS/JSON, OpenAPI; примеры FastAPI и Go | P1 |
@@ -81,28 +81,29 @@ Authenticator — независимая open-source платформа втор
 - Не реализуем собственные криптографические алгоритмы. Не заявляем об абсолютной защите от компрометации ОС или о фишинг-устойчивости TOTP.
 - Сетевой сервис, мобильная часть и синхронизация не должны увеличивать TCB локального desktop генератора.
 
-## Планируемая структура репозитория
+## Структура репозитория
 
 ```text
-desktop/crates/otp-core/    # Rust core RFC4226/6238
-desktop/crates/vault/       # encrypted vault + backups
-desktop/crates/app-core/    # domain/use cases
-desktop/crates/app-cli/     # headless test/maintenance tool
-desktop/crates/app-gui/     # GUI isolated behind interfaces; framework TBD
-server/                    # Go MFA-verifier
-api/                       # OpenAPI
-tests/vectors/             # shared RFC test fixtures
+desktop/crates/otp-core/    # Rust core RFC4226/6238 (создан)
+desktop/crates/vault/       # создан: v1 format/crypto, сессия, fixtures (persistence — VAULT-003+)
+desktop/crates/app-core/    # domain/use cases (не создан)
+desktop/crates/app-cli/     # headless test/maintenance tool (не создан)
+desktop/crates/app-gui/     # GUI isolated behind interfaces; framework TBD (не создан)
+server/                    # Go MFA-verifier; сейчас только internal/otp и cmd/verify-vectors
+api/                       # OpenAPI (не создан)
+tests/vectors/             # shared RFC test fixtures (созданы)
+tests/vault/v1/            # synthetic vault v1 fixtures + manifest (созданы)
 security/                  # threat model, ADR, supply-chain policy
 packaging/                 # Windows/Ubuntu offline releases
-README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md
+README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 ```
 
-Папки с исходным кодом — **план**, не созданные компоненты.
+`desktop/crates/otp-core`, `desktop/crates/vault` (format/crypto), `server/internal/otp`, `server/cmd/verify-vectors`, `tests/vectors` и `tests/vault/v1` уже существуют; остальные каталоги с исходным кодом — **план**.
 
 ## Порядок реализации
 
 1. **M1:** RFC-векторы, Rust/Go OTP core, тестирование URI и API контрактов.
-2. **M2:** спецификация vault и Rust crypto/storage, восстановление после ошибок.
+2. **M2:** спецификация vault, format/crypto crate и fixtures (VAULT-001) → persistence, recovery и backup (VAULT-002…005).
 3. **M3/M4:** GUI Dependency Gate, Windows/Ubuntu UI; параллельно Go verifier с PostgreSQL.
 4. **M5:** интеграция с FastAPI/Go, эксплуатация в офлайн-сети, SBOM, подписи релизов и security review.
 5. **M6/M7:** дополнительные механизмы, мобильные приложения только после stable v1.
@@ -113,5 +114,16 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md
 - [TODO.md](TODO.md) — конкретные задачи с критериями приёмки, в порядке зависимостей.
 - [AGENTS.md](AGENTS.md) — обязательные правила всех coding agents.
 - [CLAUDE.md](CLAUDE.md) — дополнительные инструкции для Claude Code.
+- [security/threat-model.md](security/threat-model.md) — активы, акторы, trust boundaries, угрозы и остаточные риски.
+- [security/supply-chain.md](security/supply-chain.md) — политика зависимостей, toolchain, SBOM и offline build.
+- [security/adr/0003-crypto.md](security/adr/0003-crypto.md) — принятые crypto crates, AEAD, Argon2id и ключевой envelope.
+- [security/adr/0004-vault.md](security/adr/0004-vault.md) — бинарный формат vault v1, лимиты, atomic write и восстановление.
+- [SECURITY.md](SECURITY.md) — как сообщить об уязвимости и политика раскрытия.
 
-**Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP, затем спецификация и реализация vault и серверного verifier.
+**Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP; формат vault v1 и его fixtures уже реализованы ([ADR-004](security/adr/0004-vault.md), [fixtures](tests/vault/v1/README.md)), in-memory сессия vault (VAULT-002) готова; следующий шаг — atomic persistence (VAULT-003), затем серверный verifier.
+
+## Лицензия
+
+Проект распространяется на условиях **MIT OR Apache-2.0** по выбору получателя: [LICENSE-MIT](LICENSE-MIT), [LICENSE-APACHE](LICENSE-APACHE). SPDX-выражение задано в `desktop/Cargo.toml` (`workspace.package.license`).
+
+Если явно не указано иное, любой вклад, намеренно отправленный в проект, лицензируется на тех же условиях (MIT OR Apache-2.0) без дополнительных условий.

@@ -1,6 +1,6 @@
 # PLAN.md — архитектура и дорожная карта Authenticator
 
-> Статус: **Architecture Draft v0.2**, 15.11.2026. Это план, а не утверждение о готовности программного обеспечения.  
+> Статус: **Architecture Draft v0.6**, 15.11.2026. Это план, а не утверждение о готовности программного обеспечения.
 > Основные приоритеты: **Windows и Ubuntu desktop + независимый MFA-сервер**. Мобильные приложения — **P3**, после стабилизации.
 
 ## 1. Цель
@@ -21,15 +21,15 @@
 | Desktop domain, vault, OTP | **Rust** stable; workspace с отдельными core/vault/GUI crates | Принято |
 | Desktop GUI | **Rust-native**, кандидаты **egui/eframe** и **Slint**; финальный выбор после GUI Dependency Gate | Открытый ADR |
 | Desktop storage | **Версионированный зашифрованный файл**; сначала без SQLite | Принято как цель MVP |
-| Desktop crypto | Проверенные RustCrypto crates (HMAC/SHA, Argon2id, AEAD, CSPRNG), ограниченный перечень после ревью | Принцип принят; конкретные crates — ADR |
+| Desktop crypto | Проверенные RustCrypto crates (HMAC/SHA, Argon2id, XChaCha20-Poly1305, CSPRNG), ограниченный перечень | Принято: ADR-003 |
 | Go MFA backend | Go standard library + PostgreSQL, один проверенный драйвер | Принято |
 | External API | JSON over HTTPS, OpenAPI, независимый от framework контракт | Принято |
 | Packaging | Windows и Ubuntu LTS; подписанные артефакты, SBOM, офлайн-сборка | Обязательная цель релиза |
 | Mobile | Android/iOS после desktop/server stable | P3 |
 
-### ADR-001 — Rust вместо C++ в desktop
+### ADR-001 — Rust-first desktop и независимость
 
-Выбор Rust обоснован безопасностью памяти и возможностью реализовать domain/vault без FFI и без C++ ABI. Это **не** устраняет supply-chain риски: Cargo dependency graph, build.rs, proc-macros, Rust toolchain и графическая библиотека остаются доверенной кодовой базой.
+Решение зафиксировано в [security/adr/0001-independence.md](security/adr/0001-independence.md). Выбор Rust обоснован безопасностью памяти и возможностью реализовать domain/vault без FFI и без C++ ABI. Это **не** устраняет supply-chain риски: Cargo dependency graph, build.rs, proc-macros, Rust toolchain и графическая библиотека остаются доверенной кодовой базой.
 
 Запрещено включать Qt/C++/WebEngine/Node.js/Electron как обязательные компоненты без отдельного сравнительного ADR и одобрения. Не использовать unsafe без документированных инвариантов, ревью и тестов.
 
@@ -40,31 +40,35 @@
 ```text
 desktop/
   crates/
-    otp-core/       # RFC 4226/6238, модель записи, URI parser (без GUI)
-    vault/          # формат файла, AEAD, KDF, persistence, recovery
+    otp-core/       # создан: RFC 4226/6238 (без GUI/storage/network)
+    vault/          # создан: строгий v1 format/crypto, in-memory сессия, fixtures; persistence — VAULT-003+
     app-core/       # use cases, traits, state machine, ошибки
     app-gui/        # только представление и OS integration; framework TBD
     app-cli/        # тестирование, обслуживаемые offline команды
   tests/
 server/
-  cmd/authenticator-mfa/
-  internal/{api,application,domain,storage,security}/
-  migrations/
+  cmd/authenticator-mfa/   # план
+  cmd/verify-vectors/      # создан: независимая проверка shared vectors
+  internal/otp/            # создан: RFC 4226/6238 (stdlib)
+  internal/{api,application,domain,storage,security}/  # план
+  migrations/              # план
 api/
-  openapi.yaml
+  openapi.yaml             # план
 tests/
-  vectors/
+  vectors/                 # создан: rfc4226/rfc6238 + README
 security/
   threat-model.md
   supply-chain.md
-  adr/
+  adr/0001-independence.md
+  adr/0003-crypto.md       # создан: crates, AEAD, Argon2id, envelope
+  adr/0004-vault.md        # создан: формат vault v1, limits, recovery
 packaging/
   windows/
   ubuntu/
-README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md
+README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 ```
 
-Папки появятся в соответствующем этапе, сейчас существуют только документы. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
+Созданы `desktop/crates/otp-core`, `desktop/crates/vault` (format/crypto), `server/internal/otp`, `server/cmd/verify-vectors`, `tests/vectors`, `tests/vault/v1`, `security/adr/0001-independence.md`, `security/adr/0003-crypto.md` и `security/adr/0004-vault.md`; остальные папки с исходным кодом — **план**. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
 
 **GUI Dependency Gate до выбора:**
 1. Сделать по одному маленькому Rust-прототипу egui/eframe и Slint для Windows + Ubuntu.
@@ -73,7 +77,9 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md
 4. Для Slint особо проверить требования выбранной лицензии и варианты backend; для eframe — графические и оконные зависимости; не путать небольшой egui core с полной стоимостью eframe.
 5. Зафиксировать результат и бюджет зависимостей в `security/adr/0002-gui.md`; GUI не должен влиять на тесты и API core.
 
-### ADR-003 — минимум сторонних зависимостей
+### Supply-chain policy — минимум сторонних зависимостей
+
+Полная политика, бюджет зависимостей и review-процесс: [security/supply-chain.md](security/supply-chain.md) (SEC-002). Ниже — краткие принципы.
 
 **Rust:** `Cargo.lock` обязателен, default-features отключать где оправдано, `cargo vendor` для релизной сборки, `cargo --frozen` и отключенный network в CI; каждый новый crate проверять по лицензии, источнику, владельцам, жизнеспособности, `build.rs`, unsafe и транзитивным зависимостям.
 
@@ -83,15 +89,17 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md
 
 Цель — **уменьшить доверенную поверхность**, а не механически довести число зависимостей до нуля. Не писать собственные криптографические примитивы. Не считать «прошёл CVE scan» доказательством безопасности.
 
-### ADR-004 — открытая совместимость
+### Совместимость и стандарты (ADR-001)
 
 HOTP RFC 4226, TOTP RFC 6238, `otpauth://`; алгоритмы SHA-1 (для совместимости), SHA-256, SHA-512, digits 6/8, period 30 с поддержкой валидируемых параметров; корректный HOTP counter. Строгий URI parser с ограничениями входа и отказом от неподдерживаемых параметров. Стандартные RFC test vectors обязательны. Пароль/секрет не записываются в логи.
 
-### ADR-005 — парольное шифрование vault, без обязательного Keyring
+### Криптография и формат vault (ADR-003, ADR-004)
+
+[ADR-003](security/adr/0003-crypto.md) принят: **XChaCha20-Poly1305**, **Argon2id** (v19, `m=64 MiB`, `t=3`, `p=1`, salt 16, key 32), прямой ключевой envelope без HKDF в v1, точные pinned-версии и проверенные RFC-векторы. [ADR-004](security/adr/0004-vault.md) фиксирует бинарный формат vault v1: 80-байтный envelope, версионированный payload/record, лимиты, AAD, atomic write, `.bak`, ошибки и восстановление. VAULT-001 реализовал format/crypto и fixtures, VAULT-002 — in-memory сессию (create/unlock/CRUD/смена пароля); persistence и backup — следующие шаги.
 
 Модель **offline, portable, fail-closed**:
 - В v1 один защищенный файл: versioned binary envelope + аутентифицированный зашифрованный payload с записями. Не считать само файловое шифрование эквивалентом защиты памяти/процесса.
-- Использовать CSPRNG ОС, **Argon2id** для ключа из парольной фразы и **XChaCha20-Poly1305 либо AES-256-GCM** по отдельному crypto ADR. Не комбинировать/придумывать свои криптосхемы.
+- Использовать CSPRNG ОС, **Argon2id** для ключа из парольной фразы и **XChaCha20-Poly1305**; схема и параметры зафиксированы ADR-003. Не комбинировать/придумывать свои криптосхемы.
 - KDF salt/params, формат, версия, nonce и AAD задаются спецификацией до кода. Установить жёсткие лимиты на размер, число записей, KDF cost и длину строк.
 - Сохранение: write → fsync → atomic rename с учетом Windows/Ubuntu semantics, резервная копия, отказоустойчивость/rollback-тесты. Ошибки разблокировки и поврежденный файл не должны создавать «пустой vault».
 - Первый ключ **не обязан** храниться в Windows DPAPI / Linux Secret Service; удобное OS-unlock — отдельная P1-функция с независимым recovery path. Потеря Keyring **не удаляет** данные.
@@ -161,6 +169,8 @@ GET  /health/ready
 
 ## 5. Threat model и release gates
 
+Актуальный реестр активов, trust boundaries, угроз и остаточных рисков: [security/threat-model.md](security/threat-model.md) (SEC-001). Ниже — сводка.
+
 Угрозы: повреждение локального vault, кража зашифрованного backup и offline password guessing, компрометация desktop-процесса/ОС, фишинг TOTP, compromised MFA database или service identity, серверный replay, brute force, гонки, tenant IDOR, malware/typosquatting crates, malicious build scripts, подмена toolchain и обновлений, rollback/migration failure.
 
 **Security Definition of Done**:
@@ -192,4 +202,4 @@ GET  /health/ready
 - Конкретные криптографические Rust crates, AEAD, параметры Argon2id, backup/vault format.
 - Windows/Ubuntu installers, подпись пакетов и совместимость версий ОС.
 - Trust scheme (mTLS/service token), ограничения challenge, key rotation и HA для Go backend.
-- Лицензия **собственного** репозитория (не копировать AGPL/GPL автоматически), policy security disclosure.
+- ~~Лицензия собственного репозитория~~ — решено 15.11.2026: `MIT OR Apache-2.0` ([LICENSE-MIT](LICENSE-MIT), [LICENSE-APACHE](LICENSE-APACHE)); policy security disclosure — [SECURITY.md](SECURITY.md).

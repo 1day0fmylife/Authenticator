@@ -1,0 +1,538 @@
+{
+  "schema": 1,
+  "kind": "totp",
+  "description": "TOTP RFC 6238 vectors for Rust and Go implementations. Test secrets are public RFC values, not real credentials.",
+  "source_documents": [
+    "RFC 6238: TOTP: Time-Based One-Time Password Algorithm, Appendix B",
+    "RFC 4226: HOTP dynamic truncation"
+  ],
+  "secrets": {
+    "rfc6238-sha1": {
+      "ascii": "12345678901234567890",
+      "base32": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+      "note": "public RFC 6238 SHA-1 test secret (20 bytes)"
+    },
+    "rfc6238-sha256": {
+      "ascii": "12345678901234567890123456789012",
+      "base32": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA====",
+      "note": "public RFC 6238 SHA-256 test secret (32 bytes)"
+    },
+    "rfc6238-sha512": {
+      "ascii": "1234567890123456789012345678901234567890123456789012345678901234",
+      "base32": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA=",
+      "note": "public RFC 6238 SHA-512 test secret (64 bytes)"
+    }
+  },
+  "vectors": [
+    {
+      "id": "rfc6238-totp-sha1-59-8",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "unix_time": 59,
+      "period": 30,
+      "code": "94287082",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha1-59-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 59,
+      "period": 30,
+      "code": "287082",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha1-1111111109-8",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "unix_time": 1111111109,
+      "period": 30,
+      "code": "07081804",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha1-1111111109-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 1111111109,
+      "period": 30,
+      "code": "081804",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha1-1111111111-8",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "unix_time": 1111111111,
+      "period": 30,
+      "code": "14050471",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha1-1111111111-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 1111111111,
+      "period": 30,
+      "code": "050471",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha1-1234567890-8",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "unix_time": 1234567890,
+      "period": 30,
+      "code": "89005924",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha1-1234567890-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 1234567890,
+      "period": 30,
+      "code": "005924",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha1-2000000000-8",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "unix_time": 2000000000,
+      "period": 30,
+      "code": "69279037",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha1-2000000000-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 2000000000,
+      "period": 30,
+      "code": "279037",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha1-20000000000-8",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "unix_time": 20000000000,
+      "period": 30,
+      "code": "65353130",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha1-20000000000-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 20000000000,
+      "period": 30,
+      "code": "353130",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha256-59-8",
+      "secret": "rfc6238-sha256",
+      "algorithm": "SHA256",
+      "digits": 8,
+      "unix_time": 59,
+      "period": 30,
+      "code": "46119246",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha256-59-6",
+      "secret": "rfc6238-sha256",
+      "algorithm": "SHA256",
+      "digits": 6,
+      "unix_time": 59,
+      "period": 30,
+      "code": "119246",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha256-1111111109-8",
+      "secret": "rfc6238-sha256",
+      "algorithm": "SHA256",
+      "digits": 8,
+      "unix_time": 1111111109,
+      "period": 30,
+      "code": "68084774",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha256-1111111109-6",
+      "secret": "rfc6238-sha256",
+      "algorithm": "SHA256",
+      "digits": 6,
+      "unix_time": 1111111109,
+      "period": 30,
+      "code": "084774",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha256-1111111111-8",
+      "secret": "rfc6238-sha256",
+      "algorithm": "SHA256",
+      "digits": 8,
+      "unix_time": 1111111111,
+      "period": 30,
+      "code": "67062674",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha256-1111111111-6",
+      "secret": "rfc6238-sha256",
+      "algorithm": "SHA256",
+      "digits": 6,
+      "unix_time": 1111111111,
+      "period": 30,
+      "code": "062674",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha256-1234567890-8",
+      "secret": "rfc6238-sha256",
+      "algorithm": "SHA256",
+      "digits": 8,
+      "unix_time": 1234567890,
+      "period": 30,
+      "code": "91819424",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha256-1234567890-6",
+      "secret": "rfc6238-sha256",
+      "algorithm": "SHA256",
+      "digits": 6,
+      "unix_time": 1234567890,
+      "period": 30,
+      "code": "819424",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha256-2000000000-8",
+      "secret": "rfc6238-sha256",
+      "algorithm": "SHA256",
+      "digits": 8,
+      "unix_time": 2000000000,
+      "period": 30,
+      "code": "90698825",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha256-2000000000-6",
+      "secret": "rfc6238-sha256",
+      "algorithm": "SHA256",
+      "digits": 6,
+      "unix_time": 2000000000,
+      "period": 30,
+      "code": "698825",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha256-20000000000-8",
+      "secret": "rfc6238-sha256",
+      "algorithm": "SHA256",
+      "digits": 8,
+      "unix_time": 20000000000,
+      "period": 30,
+      "code": "77737706",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha256-20000000000-6",
+      "secret": "rfc6238-sha256",
+      "algorithm": "SHA256",
+      "digits": 6,
+      "unix_time": 20000000000,
+      "period": 30,
+      "code": "737706",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha512-59-8",
+      "secret": "rfc6238-sha512",
+      "algorithm": "SHA512",
+      "digits": 8,
+      "unix_time": 59,
+      "period": 30,
+      "code": "90693936",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha512-59-6",
+      "secret": "rfc6238-sha512",
+      "algorithm": "SHA512",
+      "digits": 6,
+      "unix_time": 59,
+      "period": 30,
+      "code": "693936",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha512-1111111109-8",
+      "secret": "rfc6238-sha512",
+      "algorithm": "SHA512",
+      "digits": 8,
+      "unix_time": 1111111109,
+      "period": 30,
+      "code": "25091201",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha512-1111111109-6",
+      "secret": "rfc6238-sha512",
+      "algorithm": "SHA512",
+      "digits": 6,
+      "unix_time": 1111111109,
+      "period": 30,
+      "code": "091201",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha512-1111111111-8",
+      "secret": "rfc6238-sha512",
+      "algorithm": "SHA512",
+      "digits": 8,
+      "unix_time": 1111111111,
+      "period": 30,
+      "code": "99943326",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha512-1111111111-6",
+      "secret": "rfc6238-sha512",
+      "algorithm": "SHA512",
+      "digits": 6,
+      "unix_time": 1111111111,
+      "period": 30,
+      "code": "943326",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha512-1234567890-8",
+      "secret": "rfc6238-sha512",
+      "algorithm": "SHA512",
+      "digits": 8,
+      "unix_time": 1234567890,
+      "period": 30,
+      "code": "93441116",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha512-1234567890-6",
+      "secret": "rfc6238-sha512",
+      "algorithm": "SHA512",
+      "digits": 6,
+      "unix_time": 1234567890,
+      "period": 30,
+      "code": "441116",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha512-2000000000-8",
+      "secret": "rfc6238-sha512",
+      "algorithm": "SHA512",
+      "digits": 8,
+      "unix_time": 2000000000,
+      "period": 30,
+      "code": "38618901",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha512-2000000000-6",
+      "secret": "rfc6238-sha512",
+      "algorithm": "SHA512",
+      "digits": 6,
+      "unix_time": 2000000000,
+      "period": 30,
+      "code": "618901",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "rfc6238-totp-sha512-20000000000-8",
+      "secret": "rfc6238-sha512",
+      "algorithm": "SHA512",
+      "digits": 8,
+      "unix_time": 20000000000,
+      "period": 30,
+      "code": "47863826",
+      "provenance": "RFC 6238 Appendix B (published test value)"
+    },
+    {
+      "id": "rfc6238-totp-sha512-20000000000-6",
+      "secret": "rfc6238-sha512",
+      "algorithm": "SHA512",
+      "digits": 6,
+      "unix_time": 20000000000,
+      "period": 30,
+      "code": "863826",
+      "provenance": "derived: RFC 6238 TOTP with 6 digits (same truncation, modulo 10^6)"
+    },
+    {
+      "id": "boundary-period30-0-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 0,
+      "period": 30,
+      "code": "755224",
+      "provenance": "derived: time-step boundary coverage, period 30"
+    },
+    {
+      "id": "boundary-period30-1-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 1,
+      "period": 30,
+      "code": "755224",
+      "provenance": "derived: time-step boundary coverage, period 30"
+    },
+    {
+      "id": "boundary-period30-29-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 29,
+      "period": 30,
+      "code": "755224",
+      "provenance": "derived: time-step boundary coverage, period 30"
+    },
+    {
+      "id": "boundary-period30-30-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 30,
+      "period": 30,
+      "code": "287082",
+      "provenance": "derived: time-step boundary coverage, period 30"
+    },
+    {
+      "id": "boundary-period30-31-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 31,
+      "period": 30,
+      "code": "287082",
+      "provenance": "derived: time-step boundary coverage, period 30"
+    },
+    {
+      "id": "boundary-period30-59-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 59,
+      "period": 30,
+      "code": "287082",
+      "provenance": "derived: time-step boundary coverage, period 30"
+    },
+    {
+      "id": "boundary-period30-60-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 60,
+      "period": 30,
+      "code": "359152",
+      "provenance": "derived: time-step boundary coverage, period 30"
+    },
+    {
+      "id": "boundary-period30-61-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 61,
+      "period": 30,
+      "code": "359152",
+      "provenance": "derived: time-step boundary coverage, period 30"
+    },
+    {
+      "id": "boundary-period30-1799-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 1799,
+      "period": 30,
+      "code": "083773",
+      "provenance": "derived: time-step boundary coverage, period 30"
+    },
+    {
+      "id": "boundary-period30-1800-6",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "unix_time": 1800,
+      "period": 30,
+      "code": "864257",
+      "provenance": "derived: time-step boundary coverage, period 30"
+    },
+    {
+      "id": "boundary-period60-0-8",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "unix_time": 0,
+      "period": 60,
+      "code": "84755224",
+      "provenance": "derived: time-step boundary coverage, non-default period 60"
+    },
+    {
+      "id": "boundary-period60-59-8",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "unix_time": 59,
+      "period": 60,
+      "code": "84755224",
+      "provenance": "derived: time-step boundary coverage, non-default period 60"
+    },
+    {
+      "id": "boundary-period60-60-8",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "unix_time": 60,
+      "period": 60,
+      "code": "94287082",
+      "provenance": "derived: time-step boundary coverage, non-default period 60"
+    },
+    {
+      "id": "boundary-period60-119-8",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "unix_time": 119,
+      "period": 60,
+      "code": "94287082",
+      "provenance": "derived: time-step boundary coverage, non-default period 60"
+    },
+    {
+      "id": "boundary-period60-120-8",
+      "secret": "rfc6238-sha1",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "unix_time": 120,
+      "period": 60,
+      "code": "37359152",
+      "provenance": "derived: time-step boundary coverage, non-default period 60"
+    }
+  ]
+}

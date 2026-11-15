@@ -1,0 +1,18 @@
+[package]
+name = "otp-core"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+description = "RFC 4226 HOTP and RFC 6238 TOTP primitives without GUI, storage or network code"
+
+[dependencies]
+hmac.workspace = true
+sha1.workspace = true
+sha2.workspace = true
+subtle.workspace = true
+zeroize.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
