@@ -4,7 +4,7 @@ members = ["crates/otp-core", "crates/vault"]
 
 [workspace.package]
 edition = "2021"
-rust-version = "1.85"
+rust-version = "1.89"
 publish = false
 license = "MIT OR Apache-2.0"
 
@@ -17,4 +17,13 @@ zeroize = { version = "=1.8.1", default-features = false }
 argon2 = { version = "=0.5.3", default-features = false, features = ["alloc", "zeroize"] }
 chacha20poly1305 = { version = "=0.10.1", default-features = false, features = ["alloc"] }
 getrandom = { version = "=0.3.4", default-features = false }
+libc = { version = "=0.2.191", default-features = false }
 serde_json = { version = "=1.0.145", default-features = false, features = ["std"] }
+
+# Argon2id in unoptimized test builds is ~10x slower; optimize only the KDF
+# crates in dev/test profiles. Release builds are unaffected.
+[profile.dev.package.argon2]
+opt-level = 3
+
+[profile.dev.package.blake2]
+opt-level = 3

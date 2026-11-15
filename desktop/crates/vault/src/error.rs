@@ -31,6 +31,23 @@ pub enum VaultError {
     Random,
     /// A session record id does not refer to a record in this unlocked vault.
     UnknownRecord,
+    /// The vault file does not exist; it is never created implicitly.
+    NotFound,
+    /// `create` refused to overwrite an existing path.
+    AlreadyExists,
+    /// The file cannot be accessed: permission, read-only, symlink, not a
+    /// regular file, missing directory or read I/O error.
+    Unavailable(&'static str),
+    /// Another session holds the sidecar lock.
+    Busy,
+    /// The file changed or disappeared since it was opened; nothing written.
+    Conflict,
+    /// A write/fsync/rename step failed before the target was replaced; the
+    /// previous file is intact.
+    Io(&'static str),
+    /// The target was replaced but durability could not be confirmed; the
+    /// session must be reopened before further writes.
+    DurabilityUncertain,
 }
 
 impl fmt::Display for VaultError {
@@ -44,6 +61,15 @@ impl fmt::Display for VaultError {
             Self::Crypto => f.write_str("cryptographic operation failed"),
             Self::Random => f.write_str("secure random generator failed"),
             Self::UnknownRecord => f.write_str("unknown vault record"),
+            Self::NotFound => f.write_str("vault file not found"),
+            Self::AlreadyExists => f.write_str("vault file already exists"),
+            Self::Unavailable(reason) => write!(f, "vault file unavailable: {reason}"),
+            Self::Busy => f.write_str("vault is open in another session"),
+            Self::Conflict => f.write_str("vault file changed since it was opened"),
+            Self::Io(stage) => write!(f, "vault write failed at {stage}; previous file kept"),
+            Self::DurabilityUncertain => {
+                f.write_str("vault written but durability not confirmed; reopen required")
+            }
         }
     }
 }
