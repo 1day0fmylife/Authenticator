@@ -29,6 +29,8 @@ pub enum VaultError {
     Crypto,
     /// OS CSPRNG failed; no fallback is allowed.
     Random,
+    /// A session record id does not refer to a record in this unlocked vault.
+    UnknownRecord,
 }
 
 impl fmt::Display for VaultError {
@@ -41,6 +43,7 @@ impl fmt::Display for VaultError {
             Self::InvalidInput(reason) => write!(f, "invalid vault input: {reason}"),
             Self::Crypto => f.write_str("cryptographic operation failed"),
             Self::Random => f.write_str("secure random generator failed"),
+            Self::UnknownRecord => f.write_str("unknown vault record"),
         }
     }
 }

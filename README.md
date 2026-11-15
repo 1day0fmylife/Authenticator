@@ -1,6 +1,6 @@
 # Authenticator
 
-**Статус:** architecture bootstrap / draft v0.6. Документация и security policy опубликованы. Реализованы **Go и Rust OTP core** (RFC 4226/6238) с общими векторами; vault v1 зафиксирован ([ADR-004](security/adr/0004-vault.md)) и реализован на уровне **format/crypto crate с fixtures**, но без persistence/CRUD. GUI и HTTP API verifier ещё не реализованы.
+**Статус:** architecture bootstrap / draft v0.6. Документация и security policy опубликованы. Реализованы **Go и Rust OTP core** (RFC 4226/6238) с общими векторами; vault v1 зафиксирован ([ADR-004](security/adr/0004-vault.md)) и реализован на уровне **format/crypto + in-memory сессии** (create/unlock/CRUD/смена пароля) с fixtures, но без записи на диск (VAULT-003). GUI и HTTP API verifier ещё не реализованы.
 
 Authenticator — независимая open-source платформа второго фактора:
 
@@ -85,7 +85,7 @@ Authenticator — независимая open-source платформа втор
 
 ```text
 desktop/crates/otp-core/    # Rust core RFC4226/6238 (создан)
-desktop/crates/vault/       # создан: v1 format/crypto + fixtures (persistence — VAULT-002+)
+desktop/crates/vault/       # создан: v1 format/crypto, сессия, fixtures (persistence — VAULT-003+)
 desktop/crates/app-core/    # domain/use cases (не создан)
 desktop/crates/app-cli/     # headless test/maintenance tool (не создан)
 desktop/crates/app-gui/     # GUI isolated behind interfaces; framework TBD (не создан)
@@ -120,4 +120,10 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 - [security/adr/0004-vault.md](security/adr/0004-vault.md) — бинарный формат vault v1, лимиты, atomic write и восстановление.
 - [SECURITY.md](SECURITY.md) — как сообщить об уязвимости и политика раскрытия.
 
-**Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP; формат vault v1 и его fixtures уже реализованы ([ADR-004](security/adr/0004-vault.md), [fixtures](tests/vault/v1/README.md)), следующий шаг — persistence/CRUD (VAULT-002), затем серверный verifier.
+**Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP; формат vault v1 и его fixtures уже реализованы ([ADR-004](security/adr/0004-vault.md), [fixtures](tests/vault/v1/README.md)), in-memory сессия vault (VAULT-002) готова; следующий шаг — atomic persistence (VAULT-003), затем серверный verifier.
+
+## Лицензия
+
+Проект распространяется на условиях **MIT OR Apache-2.0** по выбору получателя: [LICENSE-MIT](LICENSE-MIT), [LICENSE-APACHE](LICENSE-APACHE). SPDX-выражение задано в `desktop/Cargo.toml` (`workspace.package.license`).
+
+Если явно не указано иное, любой вклад, намеренно отправленный в проект, лицензируется на тех же условиях (MIT OR Apache-2.0) без дополнительных условий.

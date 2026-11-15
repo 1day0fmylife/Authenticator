@@ -16,21 +16,21 @@ use crate::format::{
     MAX_PASSWORD_BYTES, MIN_FILE_BYTES, MIN_NEW_PASSWORD_BYTES, NONCE_LEN, SALT_LEN, TAG_LEN,
 };
 
-fn validate_password(password: &[u8]) -> VaultResult<()> {
+pub(crate) fn validate_password(password: &[u8]) -> VaultResult<()> {
     if password.is_empty() || password.len() > MAX_PASSWORD_BYTES {
         return Err(VaultError::InvalidInput("password length"));
     }
     Ok(())
 }
 
-fn validate_new_password(password: &[u8]) -> VaultResult<()> {
+pub(crate) fn validate_new_password(password: &[u8]) -> VaultResult<()> {
     if password.len() < MIN_NEW_PASSWORD_BYTES || password.len() > MAX_PASSWORD_BYTES {
         return Err(VaultError::InvalidInput("password length"));
     }
     Ok(())
 }
 
-fn derive_key(
+pub(crate) fn derive_key(
     password: &[u8],
     salt: &[u8; SALT_LEN],
     params: KdfParams,
@@ -72,7 +72,22 @@ pub(crate) fn seal_with(
 ) -> VaultResult<Vec<u8>> {
     validate_password(password)?;
     params.validate()?;
+    let key = derive_key(password, &salt, params)?;
+    seal_with_key(&key, payload, params, salt, nonce)
+}
 
+/// Encrypts `payload` under an already derived key.
+///
+/// Callers must pass a nonce never used before with this key: production
+/// paths obtain it from [`random_nonce`] immediately before this call.
+pub(crate) fn seal_with_key(
+    key: &[u8; KEY_LEN],
+    payload: &Payload,
+    params: KdfParams,
+    salt: [u8; SALT_LEN],
+    nonce: [u8; NONCE_LEN],
+) -> VaultResult<Vec<u8>> {
+    params.validate()?;
     let payload_bytes = payload.encode()?;
     let ciphertext_len = payload_bytes
         .len()
@@ -89,8 +104,7 @@ pub(crate) fn seal_with(
         ciphertext_len: ciphertext_len as u64,
     };
     let header_bytes = header.encode();
-    let key = derive_key(password, &salt, params)?;
-    let ciphertext = cipher(&key)
+    let ciphertext = cipher(key)
         .encrypt(
             XNonce::from_slice(&nonce),
             AeadPayload {
@@ -119,12 +133,21 @@ pub(crate) fn seal_with(
 pub fn seal_new(password: &[u8], payload: &Payload, params: KdfParams) -> VaultResult<Vec<u8>> {
     validate_new_password(password)?;
     params.validate()?;
+    seal_with(password, payload, params, random_salt()?, random_nonce()?)
+}
 
+/// Fresh salt from the OS CSPRNG; failure aborts the operation.
+pub(crate) fn random_salt() -> VaultResult<[u8; SALT_LEN]> {
     let mut salt = [0_u8; SALT_LEN];
-    let mut nonce = [0_u8; NONCE_LEN];
     fill_random(&mut salt).map_err(|_| VaultError::Random)?;
+    Ok(salt)
+}
+
+/// Fresh nonce from the OS CSPRNG; failure aborts the operation.
+pub(crate) fn random_nonce() -> VaultResult<[u8; NONCE_LEN]> {
+    let mut nonce = [0_u8; NONCE_LEN];
     fill_random(&mut nonce).map_err(|_| VaultError::Random)?;
-    seal_with(password, payload, params, salt, nonce)
+    Ok(nonce)
 }
 
 /// Opens and authenticates a v1 file, returning its decrypted payload.
@@ -132,6 +155,19 @@ pub fn seal_new(password: &[u8], payload: &Payload, params: KdfParams) -> VaultR
 /// Wrong password and modified ciphertext are intentionally reported as the
 /// same [`VaultError::AuthenticationFailed`] variant.
 pub fn open(password: &[u8], file: &[u8]) -> VaultResult<Payload> {
+    open_with_key(password, file).map(|opened| opened.payload)
+}
+
+/// Result of a successful open: the payload plus the key material needed to
+/// re-seal it with a fresh nonce (ADR-004 §7, normal save).
+pub(crate) struct Opened {
+    pub(crate) payload: Payload,
+    pub(crate) key: Zeroizing<[u8; KEY_LEN]>,
+    pub(crate) params: KdfParams,
+    pub(crate) salt: [u8; SALT_LEN],
+}
+
+pub(crate) fn open_with_key(password: &[u8], file: &[u8]) -> VaultResult<Opened> {
     validate_password(password)?;
     if file.len() < MIN_FILE_BYTES {
         return Err(VaultError::Corrupt("truncated file"));
@@ -161,7 +197,13 @@ pub fn open(password: &[u8], file: &[u8]) -> VaultResult<Payload> {
         )
         .map_err(|_| VaultError::AuthenticationFailed)?;
     let plaintext = Zeroizing::new(plaintext);
-    Payload::decode(&plaintext[..])
+    let payload = Payload::decode(&plaintext[..])?;
+    Ok(Opened {
+        payload,
+        key,
+        params: header.params,
+        salt: header.salt,
+    })
 }
 
 #[cfg(test)]

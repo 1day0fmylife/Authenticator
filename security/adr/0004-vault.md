@@ -241,7 +241,7 @@ zeroize payload, key, password buffers
 - Структурная порча заголовка может отличаться от AEAD-ошибки: заголовок публичен, это не даёт oracle о пароле.
 - Ошибки содержат только публичные метаданные (offset, ожидаемая/фактическая длина, версия). Никогда — пароль, ключ, secret, plaintext, decrypted payload.
 - `Debug`/`Display`/panic-сообщения не включают секреты. Ошибка не приводит к автоматическому созданию/перезаписи vault.
-- Format-слой (`desktop/crates/vault`) добавляет три внутренних класса сверх таблицы: `InvalidInput` (невалидный аргумент вызывающего кода при seal), `Crypto` (недостижимый отказ примитива) и `Random` (отказ OS CSPRNG). Они не раскрывают секретов; persistence-классы (`NotFound`, `Busy`, `Conflict`, `Io`, `DurabilityUncertain`) появятся в VAULT-002.
+- Format-слой (`desktop/crates/vault`) добавляет внутренние классы сверх таблицы: `InvalidInput` (невалидный аргумент вызывающего кода при seal), `Crypto` (недостижимый отказ примитива), `Random` (отказ OS CSPRNG) и `UnknownRecord` (session-local `RecordId` не найден, VAULT-002). Они не раскрывают секретов; persistence-классы (`NotFound`, `Busy`, `Conflict`, `Io`, `DurabilityUncertain`) появятся в VAULT-003 вместе с записью на диск.
 
 ## 11. Версионирование и миграция
 
@@ -302,7 +302,8 @@ Primitive-level независимость обеспечивают RFC 4231/910
 
 ## 15. Статус реализации
 
-- `VAULT-001` создал `desktop/crates/vault` (format/crypto) и синтетические fixtures в `tests/vault/v1/` с conformance/negative тестами. Persistence, CRUD, crash consistency и backup/restore — `VAULT-002…005`; их в коде пока нет.
+- `VAULT-001` создал `desktop/crates/vault` (format/crypto) и синтетические fixtures в `tests/vault/v1/` с conformance/negative тестами. Persistence, crash consistency и backup/restore — `VAULT-003…005`; их в коде пока нет.
+- `VAULT-002` добавил `UnlockedVault` (`session.rs`): create/unlock/lock, CRUD, `seal` с прежними salt/key и новым nonce (§7), `change_password`/KDF upgrade с проверкой текущего пароля и новыми salt/key (§8.4). Он работает с байтами; managed `.bak` из нового шифротекста при смене пароля, lock и `Conflict` (§8) — VAULT-003.
 - Fixtures проверяют точные байты заголовка, SHA-256 файла, расшифровку, неверный пароль, повреждение ciphertext/nonce/header и границы формата. Это **не** доказывает crash consistency, поведение на Windows или отсутствие уязвимостей.
 - До появления persistence-кода нельзя заявлять, что формат переживает power loss или прошёл security review.
 - Изменения формата после появления fixtures — новая версия ADR/payload/envelope с changelog, а не «тихая» правка.
@@ -313,3 +314,4 @@ Primitive-level независимость обеспечивают RFC 4231/910
 | --- | --- | --- |
 | 15.11.2026 | 1.0 | Зафиксированы envelope/payload/record layout, лимиты, AAD, atomic write, `.bak`, lock/conflict, backup/export/import/restore, ошибки, версии и test plan |
 | 15.11.2026 | 1.1 | VAULT-001: fixtures и format/crypto crate добавлены без изменения формата; уточнены три внутренних класса ошибок format-слоя; payload сериализуется в один zeroize-буфер точного размера, блоки памяти Argon2id зануляются при освобождении |
+| 15.11.2026 | 1.2 | VAULT-002: in-memory сессия vault; класс `UnknownRecord`; persistence-классы перенесены в VAULT-003. Формат не изменён |

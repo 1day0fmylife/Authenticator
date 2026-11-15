@@ -515,6 +515,26 @@ impl Payload {
         Ok(())
     }
 
+    /// Replaces the record at `index` after validating the new value.
+    pub(crate) fn replace(&mut self, index: usize, record: OtpRecord) -> VaultResult<()> {
+        record.validate()?;
+        let slot = self
+            .records
+            .get_mut(index)
+            .ok_or(VaultError::UnknownRecord)?;
+        *slot = record;
+        Ok(())
+    }
+
+    /// Removes the record at `index`; its secret is zeroized on drop.
+    pub(crate) fn remove(&mut self, index: usize) -> VaultResult<()> {
+        if index >= self.records.len() {
+            return Err(VaultError::UnknownRecord);
+        }
+        drop(self.records.remove(index));
+        Ok(())
+    }
+
     pub(crate) fn encode(&self) -> VaultResult<Zeroizing<Vec<u8>>> {
         if self.records.len() > MAX_RECORDS {
             return Err(VaultError::ResourceLimit("record count"));
