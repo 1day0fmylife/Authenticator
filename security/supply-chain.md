@@ -1,6 +1,6 @@
 # Supply-chain policy — Authenticator
 
-**Статус:** Draft v0.5, 16.11.2026.
+**Статус:** Draft v0.6, 16.11.2026.
 **Область:** Rust desktop workspace, Go MFA verifier, CI/CD, toolchains, релизные артефакты и обновления.
 **Связанные документы:** [threat-model](threat-model.md), [PLAN](../PLAN.md), [TODO](../TODO.md), [AGENTS](../AGENTS.md), ADR в `security/adr/`.
 
@@ -214,3 +214,4 @@ go list -deps ./...
 | 15.11.2026 | 0.3 | VAULT-001: измерен граф `vault` (Linux x86_64) — 6 прямых / 28 внешних normal+build (33 с dev); в рамках бюджета ≤8 / ≤40. Свой `build.rs` у crate нет; в графе `build.rs` есть у `generic-array`, `getrandom`, `libc` (3 из 28, ≈11% < 25%), их review по п. 5 ещё не оформлен. У `argon2` включён feature `zeroize` (новых пакетов не добавляет) |
 | 15.11.2026 | 0.4 | VAULT-003: `vault` — 8 прямых (предел бюджета ≤8): `sha2` из dev в normal, `libc` прямой только для `cfg(unix)` (нужны `O_NOFOLLOW`/`O_NONBLOCK`/`ELOOP`, значения зависят от архитектуры; пакет уже был в графе через `getrandom`). Внешний граф не изменился: 28 normal+build. Следующая прямая зависимость требует пересмотра бюджета |
 | 16.11.2026 | 0.5 | VAULT-006: бюджет `app-cli` переведён на инкрементальный (стартовый ≤12 полного графа был невыполним при 28 крейтах `vault`). Измерено: `app-cli` — 2 прямых (`vault`, `zeroize`), 0 новых крейтов, полный внешний граф 28 (тот же, что у `vault`); разбор аргументов — stdlib |
+| 16.11.2026 | 0.6 | SRV-001: Go verifier skeleton (`internal/api`, `cmd/authenticator-mfa`) — только stdlib, `go.sum` отсутствует (`go list -deps` без внешних модулей); PostgreSQL-драйвер не выбран и не добавлен |

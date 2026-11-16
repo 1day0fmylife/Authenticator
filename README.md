@@ -89,7 +89,7 @@ desktop/crates/vault/       # создан: v1 format/crypto, сессия, pers
 desktop/crates/app-core/    # domain/use cases (не создан)
 desktop/crates/app-cli/     # создан: headless CLI `authenticator-cli` (диагностика/тесты, без вывода секретов)
 desktop/crates/app-gui/     # GUI isolated behind interfaces; framework TBD (не создан)
-server/                    # Go MFA-verifier; сейчас только internal/otp и cmd/verify-vectors
+server/                    # Go MFA-verifier: internal/otp, internal/api (skeleton + health), cmd/authenticator-mfa, cmd/verify-vectors
 api/                       # OpenAPI (не создан)
 tests/vectors/             # shared RFC test fixtures (созданы)
 tests/vault/v1/            # synthetic vault v1 fixtures + manifest (созданы)

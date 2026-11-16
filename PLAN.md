@@ -47,10 +47,11 @@ desktop/
     app-cli/        # создан: headless `authenticator-cli` — диагностика, тесты, backup-команды без вывода секретов
   tests/
 server/
-  cmd/authenticator-mfa/   # план
+  cmd/authenticator-mfa/   # создан: HTTP-сервер (SRV-001; пока только health)
   cmd/verify-vectors/      # создан: независимая проверка shared vectors
   internal/otp/            # создан: RFC 4226/6238 (stdlib)
-  internal/{api,application,domain,storage,security}/  # план
+  internal/api/            # создан: net/http skeleton, RFC 9457 errors, health (SRV-001)
+  internal/{application,domain,storage,security}/  # план
   migrations/              # план
 api/
   openapi.yaml             # план
@@ -68,7 +69,7 @@ packaging/
 README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 ```
 
-Созданы `desktop/crates/otp-core`, `desktop/crates/vault`, `desktop/crates/app-cli`, `server/internal/otp`, `server/cmd/verify-vectors`, `tests/vectors`, `tests/vault/v1`, `security/adr/0001-independence.md`, `security/adr/0003-crypto.md` и `security/adr/0004-vault.md`; остальные папки с исходным кодом — **план**. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
+Созданы `desktop/crates/otp-core`, `desktop/crates/vault`, `desktop/crates/app-cli`, `server/internal/otp`, `server/internal/api`, `server/cmd/authenticator-mfa`, `server/cmd/verify-vectors`, `tests/vectors`, `tests/vault/v1`, `security/adr/0001-independence.md`, `security/adr/0003-crypto.md` и `security/adr/0004-vault.md`; остальные папки с исходным кодом — **план**. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
 
 **GUI Dependency Gate до выбора:**
 1. Сделать по одному маленькому Rust-прототипу egui/eframe и Slint для Windows + Ubuntu.
@@ -140,7 +141,7 @@ Backend приложения <-- MFA decision ----┘
 - Логи и аудит: без OTP/seed/QR/backup/recovery plaintext. Correlation ID, purpose, решение, причину отказа — только в безопасной форме, без subject enumeration.
 - OTP — **не phishing-resistant**; WebAuthn/FIDO2 проектируется в будущем как отдельный фактор, не должен быть неверно обозначен как уже реализованный.
 
-### 4.1. API (предложение; **ещё не реализовано**)
+### 4.1. API (предложение; реализованы только `/health/*` — SRV-001)
 
 ```http
 POST /v1/mfa/enrollments/start
