@@ -1,0 +1,16 @@
+[package]
+name = "app-cli"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+description = "Headless offline CLI for vault diagnostics and integration tests; never prints secrets"
+
+[[bin]]
+name = "authenticator-cli"
+path = "src/main.rs"
+
+[dependencies]
+vault = { path = "../vault" }
+zeroize = { workspace = true, features = ["alloc"] }

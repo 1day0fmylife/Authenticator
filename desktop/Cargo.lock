@@ -13,6 +13,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "app-cli"
+version = "0.1.0"
+dependencies = [
+ "vault",
+ "zeroize",
+]
+
+[[package]]
 name = "argon2"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -853,3 +853,31 @@ fn verify_file_reports_integrity() {
         Err(VaultError::NotFound)
     );
 }
+
+#[test]
+fn inspect_file_reports_public_metadata_only() {
+    let dir = TempDir::new();
+    prepared(&dir).close();
+    let bytes = fs::read(dir.vault()).expect("read");
+    let info = inspect_file(dir.vault()).expect("inspect");
+    assert_eq!(info.envelope_version, 1);
+    assert_eq!(info.kdf, params());
+    assert_eq!(info.file_len, bytes.len() as u64);
+    assert_eq!(
+        info.ciphertext_len,
+        (bytes.len() - crate::format::HEADER_LEN) as u64
+    );
+    assert_eq!(info.sha256, digest(&bytes));
+
+    // Structure only: a flipped ciphertext byte is not detected here.
+    let mut tampered = bytes;
+    let last = tampered.len() - 1;
+    tampered[last] ^= 1;
+    fs::write(dir.vault(), &tampered).expect("write");
+    assert!(inspect_file(dir.vault()).is_ok());
+    fs::write(dir.vault(), &tampered[..100]).expect("truncate");
+    assert!(matches!(
+        inspect_file(dir.vault()),
+        Err(VaultError::Corrupt(_))
+    ));
+}
