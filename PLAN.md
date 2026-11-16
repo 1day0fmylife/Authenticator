@@ -95,7 +95,7 @@ HOTP RFC 4226, TOTP RFC 6238, `otpauth://`; алгоритмы SHA-1 (для с�
 
 ### Криптография и формат vault (ADR-003, ADR-004)
 
-[ADR-003](security/adr/0003-crypto.md) принят: **XChaCha20-Poly1305**, **Argon2id** (v19, `m=64 MiB`, `t=3`, `p=1`, salt 16, key 32), прямой ключевой envelope без HKDF в v1, точные pinned-версии и проверенные RFC-векторы. [ADR-004](security/adr/0004-vault.md) фиксирует бинарный формат vault v1: 80-байтный envelope, версионированный payload/record, лимиты, AAD, atomic write, `.bak`, ошибки и восстановление. VAULT-001 реализовал format/crypto и fixtures, VAULT-002 — in-memory сессию, VAULT-003 (частично) — atomic persistence на Linux; Windows-durability и backup — следующие шаги.
+[ADR-003](security/adr/0003-crypto.md) принят: **XChaCha20-Poly1305**, **Argon2id** (v19, `m=64 MiB`, `t=3`, `p=1`, salt 16, key 32), прямой ключевой envelope без HKDF в v1, точные pinned-версии и проверенные RFC-векторы. [ADR-004](security/adr/0004-vault.md) фиксирует бинарный формат vault v1: 80-байтный envelope, версионированный payload/record, лимиты, AAD, atomic write, `.bak`, ошибки и восстановление. VAULT-001 реализовал format/crypto и fixtures, VAULT-002 — in-memory сессию, VAULT-003 (частично) — atomic persistence на Linux, VAULT-004 — модель ошибок, VAULT-005 (частично) — backup/export/import/restore на Linux; Windows-durability и cross-OS restore — следующие шаги.
 
 Модель **offline, portable, fail-closed**:
 - В v1 один защищенный файл: versioned binary envelope + аутентифицированный зашифрованный payload с записями. Не считать само файловое шифрование эквивалентом защиты памяти/процесса.

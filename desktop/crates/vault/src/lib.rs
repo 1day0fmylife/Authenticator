@@ -36,5 +36,5 @@ pub use format::{
     MAX_SECRET_BYTES, MAX_STRING_BYTES, MIN_FILE_BYTES, MIN_NEW_PASSWORD_BYTES, MIN_PERIOD_SECONDS,
     NONCE_LEN, PAYLOAD_VERSION, SALT_LEN, TAG_LEN,
 };
-pub use persist::{CleanupReport, VaultFile};
+pub use persist::{verify_file, CleanupReport, RestoreMode, VaultFile};
 pub use session::{RecordId, UnlockedVault};

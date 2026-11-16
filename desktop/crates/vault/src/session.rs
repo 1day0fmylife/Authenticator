@@ -226,6 +226,42 @@ impl UnlockedVault {
         )
     }
 
+    /// Seals the current payload under a key derived from `password` with a
+    /// fresh salt and nonce, without changing the session (export, restore).
+    pub(crate) fn seal_under_new_password(
+        &self,
+        password: &[u8],
+        params: KdfParams,
+    ) -> VaultResult<Vec<u8>> {
+        validate_new_password(password)?;
+        params.validate()?;
+        let salt = random_salt()?;
+        let key = derive_key(password, &salt, params)?;
+        seal_with_key(&key, &self.payload, params, salt, random_nonce()?)
+    }
+
+    /// Replaces all records (import/restore) and returns the previous ones.
+    ///
+    /// New session ids are issued, so ids handed out before the replacement
+    /// can never address imported records.
+    pub(crate) fn replace_payload(&mut self, payload: Payload) -> Payload {
+        let count = payload.len() as u64;
+        let first = self.next_id;
+        self.ids = (first..first + count).map(RecordId).collect();
+        self.next_id = first + count;
+        std::mem::replace(&mut self.payload, payload)
+    }
+
+    /// The decrypted records (crate-internal comparisons).
+    pub(crate) fn payload(&self) -> &Payload {
+        &self.payload
+    }
+
+    /// Takes the records out of a session that is being discarded.
+    pub(crate) fn into_payload(self) -> Payload {
+        self.payload
+    }
+
     /// Switches the session to prepared key material; the old key is zeroized.
     pub(crate) fn apply_rekey(&mut self, rekey: Rekey) {
         self.key = rekey.key;

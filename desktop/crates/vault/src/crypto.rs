@@ -169,22 +169,7 @@ pub(crate) struct Opened {
 
 pub(crate) fn open_with_key(password: &[u8], file: &[u8]) -> VaultResult<Opened> {
     validate_password(password)?;
-    if file.len() < MIN_FILE_BYTES {
-        return Err(VaultError::Corrupt("truncated file"));
-    }
-    if file.len() > MAX_FILE_BYTES {
-        return Err(VaultError::ResourceLimit("file length"));
-    }
-
-    let header = Header::parse(&file[..HEADER_LEN])?;
-    let ciphertext_len = usize::try_from(header.ciphertext_len)
-        .map_err(|_| VaultError::ResourceLimit("ciphertext length"))?;
-    let expected_len = HEADER_LEN
-        .checked_add(ciphertext_len)
-        .ok_or(VaultError::ResourceLimit("file length"))?;
-    if file.len() != expected_len {
-        return Err(VaultError::Corrupt("file length mismatch"));
-    }
+    let header = check_structure(file)?;
 
     let key = derive_key(password, &header.salt, header.params)?;
     let plaintext = cipher(&key)
@@ -204,6 +189,28 @@ pub(crate) fn open_with_key(password: &[u8], file: &[u8]) -> VaultResult<Opened>
         params: header.params,
         salt: header.salt,
     })
+}
+
+/// Password-free structural check: file length limits, a valid v1 header and
+/// `file_len == HEADER_LEN + ciphertext_len`. It does not authenticate.
+pub(crate) fn check_structure(file: &[u8]) -> VaultResult<Header> {
+    if file.len() < MIN_FILE_BYTES {
+        return Err(VaultError::Corrupt("truncated file"));
+    }
+    if file.len() > MAX_FILE_BYTES {
+        return Err(VaultError::ResourceLimit("file length"));
+    }
+
+    let header = Header::parse(&file[..HEADER_LEN])?;
+    let ciphertext_len = usize::try_from(header.ciphertext_len)
+        .map_err(|_| VaultError::ResourceLimit("ciphertext length"))?;
+    let expected_len = HEADER_LEN
+        .checked_add(ciphertext_len)
+        .ok_or(VaultError::ResourceLimit("file length"))?;
+    if file.len() != expected_len {
+        return Err(VaultError::Corrupt("file length mismatch"));
+    }
+    Ok(header)
 }
 
 #[cfg(test)]

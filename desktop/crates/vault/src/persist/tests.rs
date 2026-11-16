@@ -459,3 +459,397 @@ fn debug_does_not_show_path_or_secrets() {
     assert!(!text.contains("persist-test-secret"));
     assert!(!text.contains("example.test"));
 }
+
+// ---- VAULT-005: export, copy, import, restore, verify -------------------
+
+fn other_vault_file(dir: &TempDir, name: &str, password: &[u8], records: u64) -> PathBuf {
+    let path = dir.0.join(name);
+    let mut vault = UnlockedVault::create(password, params()).expect("create");
+    for counter in 0..records {
+        vault.add(record(100 + counter)).expect("add");
+    }
+    fs::write(&path, vault.seal().expect("seal")).expect("write");
+    path
+}
+
+fn header_salt(bytes: &[u8]) -> Vec<u8> {
+    bytes[28..44].to_vec()
+}
+
+#[test]
+fn export_reencrypts_with_new_password_and_never_overwrites() {
+    let dir = TempDir::new();
+    let file = prepared(&dir);
+    let dest = dir.0.join("export.avault");
+
+    file.export_to(&dest, NEW_PASSWORD, params())
+        .expect("export");
+    assert_eq!(verify_file(&dest, NEW_PASSWORD), Ok(1));
+    assert_eq!(
+        verify_file(&dest, PASSWORD),
+        Err(VaultError::AuthenticationFailed)
+    );
+    let source = fs::read(dir.vault()).expect("source");
+    let exported = fs::read(&dest).expect("export");
+    assert_ne!(header_salt(&source), header_salt(&exported), "new salt");
+    assert!(!exported
+        .windows(b"persist-test-secret".len())
+        .any(|w| w == b"persist-test-secret"));
+
+    // Existing destination is never replaced.
+    assert_eq!(
+        file.export_to(&dest, NEW_PASSWORD, params()),
+        Err(VaultError::AlreadyExists)
+    );
+    assert_eq!(fs::read(&dest).expect("export"), exported);
+
+    for own in [
+        dir.vault(),
+        dir.0.join("test.avault.bak"),
+        dir.0.join("test.avault.lock"),
+    ] {
+        assert_eq!(
+            file.export_to(&own, NEW_PASSWORD, params()),
+            Err(VaultError::InvalidInput("destination is the vault itself"))
+        );
+    }
+
+    let weak = dir.0.join("weak.avault");
+    assert_eq!(
+        file.export_to(&weak, b"short", params()),
+        Err(VaultError::InvalidInput("password length"))
+    );
+    assert!(!weak.exists());
+    assert_eq!(
+        file.export_to(
+            dir.0.join("no-such-dir").join("x.avault"),
+            NEW_PASSWORD,
+            params()
+        ),
+        Err(VaultError::Unavailable("directory not found"))
+    );
+}
+
+#[test]
+fn failed_export_leaves_no_partial_file() {
+    for stage in [Stage::WriteTemp, Stage::SyncTemp, Stage::SyncDirectory] {
+        let dir = TempDir::new();
+        let file = prepared(&dir);
+        let dest = dir.0.join("export.avault");
+        set_fault(Some((stage, false)));
+        let result = file.export_to(&dest, NEW_PASSWORD, params());
+        set_fault(None);
+        assert_eq!(result, Err(VaultError::Io(stage.name())), "{stage:?}");
+        assert!(!dest.exists(), "{stage:?}: partial export left behind");
+    }
+}
+
+#[test]
+fn byte_copy_is_identical_and_checks_for_conflicts() {
+    let dir = TempDir::new();
+    let file = prepared(&dir);
+    let dest = dir.0.join("copy.avault");
+    file.copy_to(&dest).expect("copy");
+    assert_eq!(
+        fs::read(&dest).expect("copy"),
+        fs::read(dir.vault()).expect("vault")
+    );
+    assert_eq!(verify_file(&dest, PASSWORD), Ok(1));
+    assert_eq!(file.copy_to(&dest), Err(VaultError::AlreadyExists));
+
+    fs::write(dir.vault(), b"changed elsewhere").expect("external");
+    assert_eq!(
+        file.copy_to(dir.0.join("copy2.avault")),
+        Err(VaultError::Conflict)
+    );
+    assert!(!dir.0.join("copy2.avault").exists());
+}
+
+#[test]
+fn import_replaces_records_after_full_verification() {
+    let dir = TempDir::new();
+    let mut file = prepared(&dir);
+    let before = fs::read(dir.vault()).expect("before");
+    let source = other_vault_file(&dir, "source.avault", NEW_PASSWORD, 3);
+
+    assert_eq!(file.import_replace(&source, NEW_PASSWORD), Ok(3));
+    assert_eq!(file.vault().len(), 3);
+    assert_eq!(
+        fs::read(dir.0.join("test.avault.bak")).expect("bak"),
+        before,
+        "previous file becomes .bak"
+    );
+    // The target keeps the vault's own password, not the source password.
+    assert_eq!(
+        open(NEW_PASSWORD, &fs::read(dir.vault()).expect("target")).map(|_| ()),
+        Err(VaultError::AuthenticationFailed)
+    );
+    file.close();
+    assert_eq!(verify_file(dir.vault(), PASSWORD), Ok(3));
+}
+
+#[test]
+fn rejected_import_changes_nothing() {
+    let dir = TempDir::new();
+    let mut file = prepared(&dir);
+    let before = fs::read(dir.vault()).expect("before");
+    let source = other_vault_file(&dir, "source.avault", NEW_PASSWORD, 2);
+
+    assert_eq!(
+        file.import_replace(&source, PASSWORD),
+        Err(VaultError::AuthenticationFailed)
+    );
+    fs::write(dir.0.join("garbage.avault"), vec![7_u8; 300]).expect("garbage");
+    assert!(matches!(
+        file.import_replace(dir.0.join("garbage.avault"), NEW_PASSWORD),
+        Err(VaultError::Corrupt(_))
+    ));
+    assert_eq!(
+        file.import_replace(dir.0.join("missing.avault"), NEW_PASSWORD),
+        Err(VaultError::NotFound)
+    );
+
+    // A failure while saving restores the previous records in memory.
+    set_fault(Some((Stage::ReplaceTarget, false)));
+    let result = file.import_replace(&source, NEW_PASSWORD);
+    set_fault(None);
+    assert_eq!(result, Err(VaultError::Io("replace target")));
+
+    assert_eq!(file.vault().len(), 1);
+    assert_eq!(
+        file.vault().records().next().map(|(_, r)| r),
+        Some(&record(1))
+    );
+    assert_eq!(fs::read(dir.vault()).expect("after"), before);
+    file.save().expect("session still usable");
+}
+
+#[test]
+fn restore_from_backup_rekeys_and_rotates_bak() {
+    let dir = TempDir::new();
+    let mut file = prepared(&dir);
+    file.vault_mut().add(record(2)).expect("add");
+    file.save().expect("save"); // .bak now holds the 1-record version
+    file.close();
+    let target_before = fs::read(dir.vault()).expect("target");
+    let bak = dir.0.join("test.avault.bak");
+    let bak_copy = dir.0.join("bak-copy.avault");
+    fs::copy(&bak, &bak_copy).expect("copy bak");
+
+    let restored = VaultFile::restore(
+        dir.vault(),
+        &bak_copy,
+        PASSWORD,
+        NEW_PASSWORD,
+        params(),
+        RestoreMode::RequireIntactTarget,
+    )
+    .expect("restore");
+    assert_eq!(restored.vault().len(), 1);
+    restored.close();
+
+    assert_eq!(verify_file(dir.vault(), NEW_PASSWORD), Ok(1));
+    assert_eq!(
+        verify_file(dir.vault(), PASSWORD),
+        Err(VaultError::AuthenticationFailed)
+    );
+    assert_ne!(
+        header_salt(&fs::read(dir.vault()).expect("target")),
+        header_salt(&fs::read(&bak_copy).expect("bak")),
+        "restore uses a new salt"
+    );
+    assert_eq!(
+        fs::read(&bak).expect("bak"),
+        target_before,
+        "previous target kept as .bak"
+    );
+}
+
+#[test]
+fn restore_from_managed_bak_itself_is_safe() {
+    let dir = TempDir::new();
+    let mut file = prepared(&dir);
+    file.vault_mut().add(record(2)).expect("add");
+    file.save().expect("save");
+    file.close();
+    let restored = VaultFile::restore(
+        dir.vault(),
+        dir.0.join("test.avault.bak"),
+        PASSWORD,
+        PASSWORD,
+        params(),
+        RestoreMode::RequireIntactTarget,
+    )
+    .expect("restore");
+    assert_eq!(restored.vault().len(), 1);
+    // The 2-record version moved into .bak; nothing was lost.
+    assert_eq!(verify_file(dir.0.join("test.avault.bak"), PASSWORD), Ok(2));
+}
+
+#[test]
+fn restore_into_missing_or_damaged_target_needs_confirmation() {
+    let dir = TempDir::new();
+    let backup = other_vault_file(&dir, "backup.avault", PASSWORD, 2);
+    let target = dir.0.join("restored.avault");
+
+    let restore = |mode| {
+        VaultFile::restore(&target, &backup, PASSWORD, PASSWORD, params(), mode).map(|f| f.close())
+    };
+    assert_eq!(
+        restore(RestoreMode::RequireIntactTarget),
+        Err(VaultError::NotFound)
+    );
+    assert!(!target.exists(), "no implicit vault creation");
+    assert_eq!(restore(RestoreMode::ReplaceDamagedTarget), Ok(()));
+    assert_eq!(verify_file(&target, PASSWORD), Ok(2));
+    assert!(!dir.0.join("restored.avault.bak").exists());
+
+    fs::write(&target, vec![0x41; 200]).expect("damage");
+    assert!(matches!(
+        restore(RestoreMode::RequireIntactTarget),
+        Err(VaultError::Corrupt(_))
+    ));
+    assert_eq!(fs::read(&target).expect("damaged"), vec![0x41; 200]);
+    assert_eq!(restore(RestoreMode::ReplaceDamagedTarget), Ok(()));
+    assert_eq!(verify_file(&target, PASSWORD), Ok(2));
+    // Damaged bytes are not promoted into .bak.
+    assert!(!dir.0.join("restored.avault.bak").exists());
+}
+
+#[test]
+fn restore_never_replaces_unusable_targets_or_on_bad_backup() {
+    let dir = TempDir::new();
+    let backup = other_vault_file(&dir, "backup.avault", PASSWORD, 1);
+    let target = dir.0.join("target.avault");
+    fs::create_dir(&target).expect("mkdir");
+    assert_eq!(
+        VaultFile::restore(
+            &target,
+            &backup,
+            PASSWORD,
+            PASSWORD,
+            params(),
+            RestoreMode::ReplaceDamagedTarget
+        )
+        .map(|_| ()),
+        Err(VaultError::Unavailable("not a regular file"))
+    );
+    fs::remove_dir(&target).expect("rmdir");
+
+    for mode in [
+        RestoreMode::RequireIntactTarget,
+        RestoreMode::ReplaceDamagedTarget,
+    ] {
+        assert_eq!(
+            VaultFile::restore(
+                &target,
+                &backup,
+                b"wrong password",
+                PASSWORD,
+                params(),
+                mode
+            )
+            .map(|_| ()),
+            Err(VaultError::AuthenticationFailed)
+        );
+        assert!(!target.exists());
+    }
+
+    // Busy while another session holds the target.
+    let open_session = prepared(&dir);
+    assert_eq!(
+        VaultFile::restore(
+            dir.vault(),
+            &backup,
+            PASSWORD,
+            PASSWORD,
+            params(),
+            RestoreMode::RequireIntactTarget
+        )
+        .map(|_| ()),
+        Err(VaultError::Busy)
+    );
+    drop(open_session);
+}
+
+#[test]
+fn interrupted_restore_always_leaves_a_complete_copy() {
+    let restore_stages = [
+        Stage::WriteTemp,
+        Stage::SyncTemp,
+        Stage::WriteBackup,
+        Stage::SyncBackup,
+        Stage::ReplaceTarget,
+        Stage::ReplaceBackup,
+        Stage::SyncDirectory,
+    ];
+    for crash in [false, true] {
+        for stage in restore_stages {
+            let dir = TempDir::new();
+            prepared(&dir).close(); // target: 1 record, .bak: empty vault
+            let target_before = fs::read(dir.vault()).expect("target");
+            let backup = other_vault_file(&dir, "backup.avault", PASSWORD, 3);
+
+            set_fault(Some((stage, crash)));
+            let result = VaultFile::restore(
+                dir.vault(),
+                &backup,
+                PASSWORD,
+                PASSWORD,
+                params(),
+                RestoreMode::RequireIntactTarget,
+            )
+            .map(|f| f.close());
+            set_fault(None);
+            let label = format!("{stage:?} crash={crash}");
+
+            let target_now = verify_file(dir.vault(), PASSWORD).expect("target whole");
+            let replaced = matches!(stage, Stage::ReplaceBackup | Stage::SyncDirectory);
+            if replaced {
+                assert_eq!(result, Err(VaultError::DurabilityUncertain), "{label}");
+                assert_eq!(target_now, 3, "{label}: target restored");
+            } else {
+                assert_eq!(result, Err(VaultError::Io(stage.name())), "{label}");
+                assert_eq!(
+                    fs::read(dir.vault()).expect("target"),
+                    target_before,
+                    "{label}: target untouched"
+                );
+            }
+            // The backup source is never modified.
+            assert_eq!(verify_file(&backup, PASSWORD), Ok(3), "{label}");
+            // .bak is always a complete vault.
+            assert!(
+                verify_file(dir.0.join("test.avault.bak"), PASSWORD).is_ok(),
+                "{label}"
+            );
+
+            // Reopen cleans up anything a crash left behind.
+            let reopened = VaultFile::open(dir.vault(), PASSWORD).expect("reopen");
+            drop(reopened);
+            assert!(dir.temp_files().is_empty(), "{label}: temp left");
+        }
+    }
+}
+
+#[test]
+fn verify_file_reports_integrity() {
+    let dir = TempDir::new();
+    prepared(&dir).close();
+    assert_eq!(verify_file(dir.vault(), PASSWORD), Ok(1));
+    assert_eq!(
+        verify_file(dir.vault(), NEW_PASSWORD),
+        Err(VaultError::AuthenticationFailed)
+    );
+    let mut bytes = fs::read(dir.vault()).expect("read");
+    bytes[50] ^= 1;
+    fs::write(dir.vault(), &bytes).expect("write");
+    assert_eq!(
+        verify_file(dir.vault(), PASSWORD),
+        Err(VaultError::AuthenticationFailed)
+    );
+    assert_eq!(
+        verify_file(dir.0.join("missing"), PASSWORD),
+        Err(VaultError::NotFound)
+    );
+}
