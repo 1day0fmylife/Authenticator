@@ -27,6 +27,7 @@ use std::path::{Path, PathBuf};
 
 use sha2::{Digest, Sha256};
 
+use crate::crypto::check_structure;
 use crate::error::{VaultError, VaultResult};
 use crate::format::{KdfParams, MAX_FILE_BYTES};
 use crate::session::UnlockedVault;
@@ -503,6 +504,191 @@ impl VaultFile {
         drop(self);
     }
 
+    // ---- VAULT-005: backup, export, import, restore (ADR-004 §9) ------
+
+    /// Exports the vault re-encrypted under `export_password` with a new
+    /// salt, key and nonce. Never overwrites `dest`; no plaintext touches
+    /// disk. The written file is read back and must decrypt with
+    /// `export_password` to exactly the current records, or it is removed.
+    pub fn export_to(
+        &self,
+        dest: impl AsRef<Path>,
+        export_password: &[u8],
+        params: KdfParams,
+    ) -> VaultResult<()> {
+        let dest = dest.as_ref();
+        self.reject_own_path(dest)?;
+        let bytes = self
+            .vault
+            .seal_under_new_password(export_password, params)?;
+        write_exclusive_verified(dest, &bytes)?;
+
+        let verified = read_vault_file(dest)
+            .and_then(|reread| UnlockedVault::unlock(export_password, &reread));
+        match verified {
+            Ok(copy) if copy.payload() == self.vault.payload() => Ok(()),
+            _ => {
+                let _ = fs::remove_file(dest);
+                Err(VaultError::Io("verify export"))
+            }
+        }
+    }
+
+    /// Writes a byte-identical copy of the vault file (same password, salt
+    /// and key). The on-disk file must still match this session (`Conflict`
+    /// otherwise); the copy's SHA-256 is verified after writing.
+    pub fn copy_to(&self, dest: impl AsRef<Path>) -> VaultResult<()> {
+        let dest = dest.as_ref();
+        self.reject_own_path(dest)?;
+        let bytes = match read_vault_file(&self.paths.target) {
+            Ok(bytes) => bytes,
+            Err(VaultError::NotFound) => return Err(VaultError::Conflict),
+            Err(error) => return Err(error),
+        };
+        if digest(&bytes) != self.baseline {
+            return Err(VaultError::Conflict);
+        }
+        write_exclusive_verified(dest, &bytes)
+    }
+
+    /// Replaces all records with those of a fully verified v1 file.
+    ///
+    /// The source is read within limits and authenticated with
+    /// `source_password` before anything changes. The result is sealed with
+    /// the current vault key and a new nonce; the previous file becomes
+    /// `.bak`. v1 import is replace-only (no merge). On a failed save the
+    /// session keeps its previous records. Returns the imported record count.
+    pub fn import_replace(
+        &mut self,
+        source: impl AsRef<Path>,
+        source_password: &[u8],
+    ) -> VaultResult<usize> {
+        let bytes = read_vault_file(source.as_ref())?;
+        let imported = UnlockedVault::unlock(source_password, &bytes)?.into_payload();
+        let count = imported.len();
+
+        let previous = self.vault.replace_payload(imported);
+        let sealed = match self.vault.seal() {
+            Ok(sealed) => sealed,
+            Err(error) => {
+                self.vault.replace_payload(previous);
+                return Err(error);
+            }
+        };
+        match self.commit(&sealed, Backup::Previous) {
+            Ok(()) => Ok(count),
+            // The target already holds the imported records.
+            Err(VaultError::DurabilityUncertain) => Err(VaultError::DurabilityUncertain),
+            Err(error) => {
+                self.vault.replace_payload(previous);
+                Err(error)
+            }
+        }
+    }
+
+    /// Restores `target` from a backup file and returns an open session.
+    ///
+    /// 1. The backup is fully verified with `backup_password`.
+    /// 2. The current target is classified. An intact v1 file (structurally
+    ///    valid header and length) is kept as the new `.bak`. A missing or
+    ///    structurally damaged target is replaced only with
+    ///    [`RestoreMode::ReplaceDamagedTarget`] (explicit user confirmation);
+    ///    `.bak` is then left untouched. Unreadable paths, symlinks and
+    ///    non-regular files are never replaced.
+    /// 3. The records are sealed for `new_password` with a new salt, key and
+    ///    nonce (it may equal `backup_password`).
+    /// 4. The target is replaced first, then `.bak`, so an interruption
+    ///    never leaves the system without one complete copy of the backup.
+    pub fn restore(
+        target: impl AsRef<Path>,
+        backup: impl AsRef<Path>,
+        backup_password: &[u8],
+        new_password: &[u8],
+        params: KdfParams,
+        mode: RestoreMode,
+    ) -> VaultResult<Self> {
+        let paths = Paths::new(target.as_ref())?;
+        let lock = acquire_lock(&paths.lock)?;
+        let cleanup = cleanup_stale(&paths);
+
+        let backup_bytes = read_vault_file(backup.as_ref())?;
+        let restored = UnlockedVault::unlock(backup_password, &backup_bytes)?;
+
+        let replace_damaged = mode == RestoreMode::ReplaceDamagedTarget;
+        let current = match read_vault_file(&paths.target) {
+            Ok(bytes) => match check_structure(&bytes) {
+                Ok(_) => Some(bytes),
+                Err(_) if replace_damaged => None,
+                Err(error) => return Err(error),
+            },
+            Err(VaultError::NotFound | VaultError::ResourceLimit(_)) if replace_damaged => None,
+            Err(error) => return Err(error),
+        };
+
+        let mut vault = UnlockedVault::create(new_password, params)?;
+        vault.replace_payload(restored.into_payload());
+        let bytes = vault.seal()?;
+
+        let temp = paths.random_path(&paths.temp_prefix())?;
+        if let Err(error) = write_new(&temp, &bytes, Stage::WriteTemp, Stage::SyncTemp) {
+            discard(&temp);
+            return Err(error);
+        }
+        let bak_temp = match &current {
+            Some(previous) => {
+                let bak_temp = paths.random_path(&paths.bak_temp_prefix())?;
+                if let Err(error) =
+                    write_new(&bak_temp, previous, Stage::WriteBackup, Stage::SyncBackup)
+                {
+                    discard(&bak_temp);
+                    discard(&temp);
+                    return Err(error);
+                }
+                Some(bak_temp)
+            }
+            None => None,
+        };
+
+        if let Err(error) =
+            inject(Stage::ReplaceTarget).and_then(|()| fs::rename(&temp, &paths.target))
+        {
+            discard(&temp);
+            if let Some(bak_temp) = &bak_temp {
+                discard(bak_temp);
+            }
+            return Err(write_error(&error, Stage::ReplaceTarget));
+        }
+        // The target is restored. A failure from here on is reported as
+        // DurabilityUncertain: the caller must reopen and check.
+        if let Some(bak_temp) = &bak_temp {
+            if inject(Stage::ReplaceBackup)
+                .and_then(|()| fs::rename(bak_temp, &paths.bak))
+                .is_err()
+            {
+                discard(bak_temp);
+                return Err(VaultError::DurabilityUncertain);
+            }
+        }
+        sync_directory(&paths.dir).map_err(|_| VaultError::DurabilityUncertain)?;
+
+        Ok(Self {
+            paths,
+            _lock: lock,
+            baseline: digest(&bytes),
+            vault,
+            poisoned: false,
+            cleanup,
+        })
+    }
+
+    /// Refuses export/copy destinations that are this vault's own files.
+    fn reject_own_path(&self, dest: &Path) -> VaultResult<()> {
+        if dest == self.paths.target || dest == self.paths.bak || dest == self.paths.lock {
+            return Err(VaultError::InvalidInput("destination is the vault itself"));
+        }
+        Ok(())
+    }
+
     fn commit(&mut self, bytes: &[u8], backup: Backup) -> VaultResult<()> {
         if self.poisoned {
             return Err(VaultError::Unavailable("reopen required"));
@@ -565,6 +751,61 @@ impl VaultFile {
         self.baseline = digest(bytes);
         Ok(())
     }
+}
+
+/// How [`VaultFile::restore`] treats the current target.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RestoreMode {
+    /// The target must be an existing, structurally valid v1 file; it is
+    /// kept as `.bak`. Missing or damaged targets return their error.
+    RequireIntactTarget,
+    /// Explicit user confirmation that a missing or structurally damaged
+    /// target may be replaced (ADR-004 §9). Never creates an empty vault.
+    ReplaceDamagedTarget,
+}
+
+/// Verifies a vault or backup file without opening a session: limits,
+/// header, AEAD tag and payload. Returns the number of records.
+pub fn verify_file(path: impl AsRef<Path>, password: &[u8]) -> VaultResult<usize> {
+    let bytes = read_vault_file(path.as_ref())?;
+    Ok(UnlockedVault::unlock(password, &bytes)?.len())
+}
+
+/// Creates `dest` exclusively (never overwrites), writes and fsyncs it and
+/// its directory, then reads it back and compares SHA-256. Any failure after
+/// creation removes the partial file.
+fn write_exclusive_verified(dest: &Path, bytes: &[u8]) -> VaultResult<()> {
+    let dir = Paths::new(dest)?.dir;
+    let mut options = OpenOptions::new();
+    options.write(true).create_new(true);
+    harden(&mut options, false);
+    let mut file = options.open(dest).map_err(|error| match error.kind() {
+        io::ErrorKind::AlreadyExists => VaultError::AlreadyExists,
+        io::ErrorKind::NotFound => VaultError::Unavailable("directory not found"),
+        _ => write_error(&error, Stage::WriteTemp),
+    })?;
+
+    let written = inject(Stage::WriteTemp)
+        .and_then(|()| file.write_all(bytes))
+        .map_err(|error| write_error(&error, Stage::WriteTemp))
+        .and_then(|()| {
+            inject(Stage::SyncTemp)
+                .and_then(|()| file.sync_all())
+                .map_err(|error| write_error(&error, Stage::SyncTemp))
+        });
+    drop(file);
+    let result = written
+        .and_then(|()| {
+            sync_directory(&dir).map_err(|error| write_error(&error, Stage::SyncDirectory))
+        })
+        .and_then(|()| match read_vault_file(dest) {
+            Ok(reread) if digest(&reread) == digest(bytes) => Ok(()),
+            _ => Err(VaultError::Io("verify copy")),
+        });
+    if result.is_err() {
+        let _ = fs::remove_file(dest);
+    }
+    result
 }
 
 impl fmt::Debug for VaultFile {
