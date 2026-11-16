@@ -44,7 +44,7 @@ desktop/
     vault/          # создан: v1 format/crypto, in-memory сессия, persistence (Linux), fixtures
     app-core/       # use cases, traits, state machine, ошибки
     app-gui/        # только представление и OS integration; framework TBD
-    app-cli/        # тестирование, обслуживаемые offline команды
+    app-cli/        # создан: headless `authenticator-cli` — диагностика, тесты, backup-команды без вывода секретов
   tests/
 server/
   cmd/authenticator-mfa/   # план
@@ -68,7 +68,7 @@ packaging/
 README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 ```
 
-Созданы `desktop/crates/otp-core`, `desktop/crates/vault` (format/crypto), `server/internal/otp`, `server/cmd/verify-vectors`, `tests/vectors`, `tests/vault/v1`, `security/adr/0001-independence.md`, `security/adr/0003-crypto.md` и `security/adr/0004-vault.md`; остальные папки с исходным кодом — **план**. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
+Созданы `desktop/crates/otp-core`, `desktop/crates/vault`, `desktop/crates/app-cli`, `server/internal/otp`, `server/cmd/verify-vectors`, `tests/vectors`, `tests/vault/v1`, `security/adr/0001-independence.md`, `security/adr/0003-crypto.md` и `security/adr/0004-vault.md`; остальные папки с исходным кодом — **план**. Без локального HTTP/IPC daemon и без сетевых разрешений в GUI v1.
 
 **GUI Dependency Gate до выбора:**
 1. Сделать по одному маленькому Rust-прототипу egui/eframe и Slint для Windows + Ubuntu.

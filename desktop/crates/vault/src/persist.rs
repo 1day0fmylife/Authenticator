@@ -764,6 +764,39 @@ pub enum RestoreMode {
     ReplaceDamagedTarget,
 }
 
+/// Public, password-free metadata of a vault file (diagnostics).
+///
+/// Everything here is in the unencrypted header or derived from the file
+/// bytes; no record data is decrypted.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FileInfo {
+    /// Envelope/AAD version (always 1 for files this crate accepts).
+    pub envelope_version: u16,
+    /// Argon2id parameters from the header.
+    pub kdf: KdfParams,
+    /// Total file length in bytes.
+    pub file_len: u64,
+    /// AEAD ciphertext length including the tag.
+    pub ciphertext_len: u64,
+    /// SHA-256 of the whole file (the `baseline_digest` value).
+    pub sha256: [u8; 32],
+}
+
+/// Reads a file within v1 limits and checks its structure without a
+/// password. It does **not** authenticate the contents; use
+/// [`verify_file`] for an integrity check.
+pub fn inspect_file(path: impl AsRef<Path>) -> VaultResult<FileInfo> {
+    let bytes = read_vault_file(path.as_ref())?;
+    let header = check_structure(&bytes)?;
+    Ok(FileInfo {
+        envelope_version: crate::format::ENVELOPE_VERSION,
+        kdf: header.params,
+        file_len: bytes.len() as u64,
+        ciphertext_len: header.ciphertext_len,
+        sha256: digest(&bytes),
+    })
+}
+
 /// Verifies a vault or backup file without opening a session: limits,
 /// header, AEAD tag and payload. Returns the number of records.
 pub fn verify_file(path: impl AsRef<Path>, password: &[u8]) -> VaultResult<usize> {

@@ -87,7 +87,7 @@ Authenticator — независимая open-source платформа втор
 desktop/crates/otp-core/    # Rust core RFC4226/6238 (создан)
 desktop/crates/vault/       # создан: v1 format/crypto, сессия, persistence (Linux), fixtures
 desktop/crates/app-core/    # domain/use cases (не создан)
-desktop/crates/app-cli/     # headless test/maintenance tool (не создан)
+desktop/crates/app-cli/     # создан: headless CLI `authenticator-cli` (диагностика/тесты, без вывода секретов)
 desktop/crates/app-gui/     # GUI isolated behind interfaces; framework TBD (не создан)
 server/                    # Go MFA-verifier; сейчас только internal/otp и cmd/verify-vectors
 api/                       # OpenAPI (не создан)
@@ -98,7 +98,7 @@ packaging/                 # Windows/Ubuntu offline releases
 README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 ```
 
-`desktop/crates/otp-core`, `desktop/crates/vault` (format/crypto), `server/internal/otp`, `server/cmd/verify-vectors`, `tests/vectors` и `tests/vault/v1` уже существуют; остальные каталоги с исходным кодом — **план**.
+`desktop/crates/otp-core`, `desktop/crates/vault`, `desktop/crates/app-cli`, `server/internal/otp`, `server/cmd/verify-vectors`, `tests/vectors` и `tests/vault/v1` уже существуют; остальные каталоги с исходным кодом — **план**.
 
 ## Порядок реализации
 
@@ -120,7 +120,7 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 - [security/adr/0004-vault.md](security/adr/0004-vault.md) — бинарный формат vault v1, лимиты, atomic write и восстановление.
 - [SECURITY.md](SECURITY.md) — как сообщить об уязвимости и политика раскрытия.
 
-**Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP; формат vault v1 и его fixtures уже реализованы ([ADR-004](security/adr/0004-vault.md), [fixtures](tests/vault/v1/README.md)), in-memory сессия (VAULT-002) и Linux persistence (VAULT-003, частично) готовы; модель ошибок (VAULT-004) и backup/export/import/restore для Linux (VAULT-005, частично) готовы; дальше — Windows-части VAULT-003/005, VAULT-006 (`app-cli`), затем серверный verifier.
+**Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP; формат vault v1 и его fixtures уже реализованы ([ADR-004](security/adr/0004-vault.md), [fixtures](tests/vault/v1/README.md)), in-memory сессия (VAULT-002) и Linux persistence (VAULT-003, частично) готовы; модель ошибок (VAULT-004), backup/export/import/restore для Linux (VAULT-005, частично) и headless `app-cli` (VAULT-006) готовы; дальше — Windows-части VAULT-003/005, затем GUI Dependency Gate и серверный verifier.
 
 ## Лицензия
 
