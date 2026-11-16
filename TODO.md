@@ -42,7 +42,7 @@
 
 ## P0 — серверная часть Go
 
-- [ ] **SRV-001** Создать Go-модуль и `net/http` skeleton с structured errors и health endpoints. **Готово:** dependency graph ограничен stdlib и утвержденным PostgreSQL-драйвером.
+- [x] **SRV-001** Создать Go-модуль и `net/http` skeleton с structured errors и health endpoints. **Готово:** dependency graph ограничен stdlib и утвержденным PostgreSQL-драйвером. → [`server/internal/api`](server/internal/api/server.go) + [`server/cmd/authenticator-mfa`](server/cmd/authenticator-mfa/main.go): RFC 9457 `application/problem+json` (стабильный `code`, `request_id`), собственный роутер (структурированные 404/405 + `Allow`), request ID с валидацией входящего значения, recovery без утечки panic, лимит тела 64 KiB, security headers, JSON access log только с шаблоном маршрута (без пути/query/заголовков), таймауты сервера; `GET /health/live`, `GET /health/ready` (503 при сбое проверки или shutdown, без деталей ошибки); graceful shutdown; отказ слушать не-loopback адрес без `-insecure-listen-any` до SRV-003. `go list -deps`: только stdlib (PostgreSQL-драйвер ещё не нужен), `go.sum` нет. `gofmt`, `go vet`, `go test`, `go test -race` пройдены.
 - [ ] **SRV-002** Спроектировать PostgreSQL схему, ограничения tenant isolation и миграции. **Готово:** фикстуры и rollback/upgrade тесты проверяют FK, UNIQUE, индексы.
 - [ ] **SRV-003** Добавить служебную аутентификацию (mTLS или эквивалент), scopes и tenant resolution. **Готово:** клиент из tenant A не может обратиться к данным tenant B или указать произвольный tenant.
 - [ ] **SRV-004** Реализовать TOTP enrollment start/confirm с short TTL и secure seed handling. **Готово:** enrolment невозможно без доверенной сессии backend и подтверждения действительным OTP.
