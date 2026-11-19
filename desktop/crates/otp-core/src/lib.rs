@@ -1,12 +1,15 @@
-//! RFC 4226 HOTP and RFC 6238 TOTP primitives.
+//! RFC 4226 HOTP, RFC 6238 TOTP and strict `otpauth://` Key URI handling.
 //!
-//! This crate is deliberately limited to OTP computation: no GUI, storage,
-//! network or logging code. It does not implement replay protection; accepting
-//! a time-step or counter exactly once is the caller's responsibility.
+//! This crate is deliberately limited to OTP computation and Key URI parsing:
+//! no GUI, storage, network or logging code. It does not implement replay
+//! protection; accepting a time-step or counter exactly once is the caller's
+//! responsibility.
 //!
 //! Secrets are never included in error values or `Debug` output.
 
 #![forbid(unsafe_code)]
+
+mod uri;
 
 use std::fmt;
 
@@ -15,6 +18,8 @@ use sha1::Sha1;
 use sha2::{Sha256, Sha512};
 use subtle::ConstantTimeEq;
 use zeroize::Zeroizing;
+
+pub use uri::{OtpType, OtpUri, UriError, DEFAULT_PERIOD_SECONDS, MAX_LABEL_BYTES, MAX_URI_BYTES};
 
 /// Minimum accepted secret length in bytes.
 pub const MIN_SECRET_BYTES: usize = 1;

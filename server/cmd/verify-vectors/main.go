@@ -314,7 +314,7 @@ func verifyTOTP(dir string) error {
 }
 
 func main() {
-	dir := flag.String("dir", "../tests/vectors", "directory containing rfc4226-hotp.json and rfc6238-totp.json")
+	dir := flag.String("dir", "../tests/vectors", "directory containing rfc4226-hotp.json, rfc6238-totp.json and otpauth.json")
 	flag.Parse()
 
 	if err := verifyHOTP(*dir); err != nil {
@@ -322,6 +322,10 @@ func main() {
 		os.Exit(1)
 	}
 	if err := verifyTOTP(*dir); err != nil {
+		fmt.Fprintln(os.Stderr, "verify-vectors:", err)
+		os.Exit(1)
+	}
+	if err := verifyOTPAuth(*dir); err != nil {
 		fmt.Fprintln(os.Stderr, "verify-vectors:", err)
 		os.Exit(1)
 	}
