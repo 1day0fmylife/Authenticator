@@ -8,6 +8,7 @@
 | --- | --- |
 | `rfc4226-hotp.json` | HOTP RFC 4226: counters 0…9, 6 digits (published) и 8 digits (derived) |
 | `rfc6238-totp.json` | TOTP RFC 6238: SHA-1/256/512, published 8-digit values; derived 6-digit; границы времени и period=60 |
+| `otpauth.json` | `otpauth://` Key URI: 25 valid (вход + канонический вид + ожидаемые поля) и 53 invalid (вход + причина отказа) |
 
 ## Правила
 
@@ -17,6 +18,23 @@
   - `derived: ...` — вычислены той же стандартной схемой (dynamic truncation, mod 10^digits, time-step), но не опубликованы в RFC.
 - `digits` — только 6 или 8. `period` — положительное целое; в v1 поддержка нестандартных period допускается только при явной валидации.
 - Векторы не описывают replay/rate-limit — это уровень verifier (SRV-005), не OTP core.
+
+## `otpauth.json`
+
+Формат: `schema: 1`, `kind: "otpauth"`, массивы `valid` и `invalid`. Для `valid` обязательны `uri` (вход), `canonical` (единственный допустимый вывод генератора), `type`, `secret_base32`, `secret_hex`, `issuer`, `account`, `algorithm`, `digits` и ровно одно из `period` (TOTP) / `counter` (HOTP). Для `invalid` обязательны `uri` и текстовый `reason`; конкретный тип ошибки проверяют unit-тесты каждой реализации, а не JSON.
+
+Политика v1, одинаковая для Rust (`desktop/crates/otp-core/src/uri.rs`) и Go (`server/internal/otp/uri.go`):
+
+- raw URI — только печатный ASCII, не длиннее 4096 байт; не-ASCII в label/issuer обязан быть percent-encoded; raw space, `#` и control-символы отвергаются;
+- percent-decoding без form-decoding: `+` остаётся `+`, `%20` — пробел;
+- тип и имя query-параметров регистронезависимы (сравнение только ASCII, без Unicode case folding); неизвестные и повторяющиеся параметры отвергаются, порядок параметров нормализуется;
+- `digits` — ровно `6` или `8`, `period` — `1…86400`, HOTP `counter` — канонический `u64` (без знака и ведущих нулей); defaults: SHA-1, 6 digits, period 30;
+- `issuer` в label и в параметре должны совпадать после декодирования; пустой issuer допустим только при отсутствии обоих;
+- TOTP запрещает `counter`, HOTP требует `counter` и запрещает `period`;
+- Base32: регистр нормализуется, padding либо отсутствует, либо строго канонический; non-zero хвостовые биты отвергаются;
+- канонический генератор опускает defaults, пишет secret первым, затем `issuer`, `algorithm`, `digits`, `period`/`counter`, и кодирует все байты label вне unreserved-набора.
+
+`canonical` в векторах — это именно результат генератора, а не «похожая» строка: тесты обеих реализаций сравнивают его побайтово и требуют, чтобы повторный разбор давал тот же объект.
 
 ## Проверка
 
@@ -29,7 +47,7 @@ go run ./cmd/verify-vectors
 go run ./cmd/verify-vectors -dir ../tests/vectors
 ```
 
-Инструмент пересчитывает все значения, отдельно сверяет published RFC-векторы и валидирует структуру JSON. Go-тесты пакета `server/internal/otp` читают эти же файлы.
+Инструмент пересчитывает все значения, отдельно сверяет published RFC-векторы и валидирует структуру JSON, включая независимую проверку `otpauth.json` (secret_base32 ↔ secret_hex через stdlib, отсутствие defaults в canonical, фиксированный порядок параметров, границы period/counter). Он намеренно **не** разбирает `otpauth://`: строгий parser — это код под тестом, и третья реализация только добавила бы ещё одну точку расхождения. Go-тесты пакета `server/internal/otp` читают эти же файлы.
 
 Python и другие внешние генераторы в проекте не используются: векторы статичны, проверяются Go-инструментом и тестами.
 

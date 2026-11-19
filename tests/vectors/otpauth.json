@@ -1,0 +1,624 @@
+{
+  "schema": 1,
+  "kind": "otpauth",
+  "description": "Strict otpauth:// Key URI conformance vectors for the Rust and Go OTP cores. All secrets are synthetic public test values; canonical is the only accepted generator output.",
+  "valid": [
+    {
+      "name": "minimal-totp",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP",
+      "canonical": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "",
+      "account": "alice",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "totp-issuer-prefix",
+      "uri": "otpauth://totp/Example:alice%40example.test?secret=JBSWY3DPEHPK3PXP&issuer=Example",
+      "canonical": "otpauth://totp/Example:alice%40example.test?secret=JBSWY3DPEHPK3PXP&issuer=Example",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "alice@example.test",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "totp-full-parameters",
+      "uri": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example&algorithm=SHA256&digits=8&period=60",
+      "canonical": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example&algorithm=SHA256&digits=8&period=60",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "alice",
+      "algorithm": "SHA256",
+      "digits": 8,
+      "period": 60,
+      "counter": null
+    },
+    {
+      "name": "case-insensitive-scheme-type-keys-values",
+      "uri": "OTPAUTH://TOTP/Example:alice?SECRET=jbswy3dpehpk3pxp&ISSUER=Example&ALGORITHM=sha512&DIGITS=8&PERIOD=1",
+      "canonical": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example&algorithm=SHA512&digits=8&period=1",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "alice",
+      "algorithm": "SHA512",
+      "digits": 8,
+      "period": 1,
+      "counter": null
+    },
+    {
+      "name": "base32-padding-and-lowercase",
+      "uri": "otpauth://totp/foo?secret=mzxw6%3d%3d%3d",
+      "canonical": "otpauth://totp/foo?secret=MZXW6",
+      "type": "totp",
+      "secret_base32": "MZXW6",
+      "secret_hex": "666f6f",
+      "issuer": "",
+      "account": "foo",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "base32-normalizes-case",
+      "uri": "otpauth://totp/bar?secret=onswg4tfoq",
+      "canonical": "otpauth://totp/bar?secret=ONSWG4TFOQ",
+      "type": "totp",
+      "secret_base32": "ONSWG4TFOQ",
+      "secret_hex": "736563726574",
+      "issuer": "",
+      "account": "bar",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "query-order-is-normalized",
+      "uri": "otpauth://totp/Example:alice?digits=8&issuer=Example&secret=JBSWY3DPEHPK3PXP&algorithm=SHA256&period=60",
+      "canonical": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example&algorithm=SHA256&digits=8&period=60",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "alice",
+      "algorithm": "SHA256",
+      "digits": 8,
+      "period": 60,
+      "counter": null
+    },
+    {
+      "name": "issuer-from-label-only",
+      "uri": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP",
+      "canonical": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "alice",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "issuer-from-parameter-only",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&issuer=Example",
+      "canonical": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "alice",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "raw-at-is-encoded",
+      "uri": "otpauth://totp/alice@example.com?secret=JBSWY3DPEHPK3PXP",
+      "canonical": "otpauth://totp/alice%40example.com?secret=JBSWY3DPEHPK3PXP",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "",
+      "account": "alice@example.com",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "literal-plus-is-not-space",
+      "uri": "otpauth://totp/ACME+Co:alice+tag?secret=JBSWY3DPEHPK3PXP&issuer=ACME+Co",
+      "canonical": "otpauth://totp/ACME%2BCo:alice%2Btag?secret=JBSWY3DPEHPK3PXP&issuer=ACME%2BCo",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "ACME+Co",
+      "account": "alice+tag",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "spaces-are-percent-encoded",
+      "uri": "otpauth://totp/ACME%20Co:john%20doe?secret=JBSWY3DPEHPK3PXP&issuer=ACME%20Co",
+      "canonical": "otpauth://totp/ACME%20Co:john%20doe?secret=JBSWY3DPEHPK3PXP&issuer=ACME%20Co",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "ACME Co",
+      "account": "john doe",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "unicode-labels",
+      "uri": "otpauth://totp/%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80:%E7%94%A8%E6%88%B7%40example.test?secret=JBSWY3DPEHPK3PXP&issuer=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80",
+      "canonical": "otpauth://totp/%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80:%E7%94%A8%E6%88%B7%40example.test?secret=JBSWY3DPEHPK3PXP&issuer=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Пример",
+      "account": "用户@example.test",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "colon-inside-account",
+      "uri": "otpauth://totp/Example:a%3Ab%40c?secret=JBSWY3DPEHPK3PXP&issuer=Example",
+      "canonical": "otpauth://totp/Example:a%3Ab%40c?secret=JBSWY3DPEHPK3PXP&issuer=Example",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "a:b@c",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "colon-inside-issuer",
+      "uri": "otpauth://totp/A%3AB:alice?secret=JBSWY3DPEHPK3PXP&issuer=A%3AB",
+      "canonical": "otpauth://totp/A%3AB:alice?secret=JBSWY3DPEHPK3PXP&issuer=A%3AB",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "A:B",
+      "account": "alice",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "minimal-period",
+      "uri": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example&period=1",
+      "canonical": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example&period=1",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "alice",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 1,
+      "counter": null
+    },
+    {
+      "name": "maximal-period",
+      "uri": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example&period=86400",
+      "canonical": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example&period=86400",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "alice",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 86400,
+      "counter": null
+    },
+    {
+      "name": "explicit-defaults-are-omitted",
+      "uri": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example&algorithm=SHA1&digits=6&period=30",
+      "canonical": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "alice",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "totp-eight-digits-default-period",
+      "uri": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example&digits=8",
+      "canonical": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example&digits=8",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "alice",
+      "algorithm": "SHA1",
+      "digits": 8,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "unreserved-characters",
+      "uri": "otpauth://totp/a-b_c.d~e?secret=JBSWY3DPEHPK3PXP",
+      "canonical": "otpauth://totp/a-b_c.d~e?secret=JBSWY3DPEHPK3PXP",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "",
+      "account": "a-b_c.d~e",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "algorithm-percent-decoded",
+      "uri": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example&algorithm=SHA%32%35%36",
+      "canonical": "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example&algorithm=SHA256",
+      "type": "totp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "alice",
+      "algorithm": "SHA256",
+      "digits": 6,
+      "period": 30,
+      "counter": null
+    },
+    {
+      "name": "hotp-basic",
+      "uri": "otpauth://hotp/Example:bob?secret=JBSWY3DPEHPK3PXP&issuer=Example&counter=42",
+      "canonical": "otpauth://hotp/Example:bob?secret=JBSWY3DPEHPK3PXP&issuer=Example&counter=42",
+      "type": "hotp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "bob",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": null,
+      "counter": 42
+    },
+    {
+      "name": "hotp-zero-counter-sha512",
+      "uri": "otpauth://hotp/Example:bob?secret=JBSWY3DPEHPK3PXP&issuer=Example&algorithm=SHA512&digits=8&counter=0",
+      "canonical": "otpauth://hotp/Example:bob?secret=JBSWY3DPEHPK3PXP&issuer=Example&algorithm=SHA512&digits=8&counter=0",
+      "type": "hotp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "bob",
+      "algorithm": "SHA512",
+      "digits": 8,
+      "period": null,
+      "counter": 0
+    },
+    {
+      "name": "hotp-max-counter",
+      "uri": "otpauth://hotp/Example:bob?secret=JBSWY3DPEHPK3PXP&issuer=Example&counter=18446744073709551615",
+      "canonical": "otpauth://hotp/Example:bob?secret=JBSWY3DPEHPK3PXP&issuer=Example&counter=18446744073709551615",
+      "type": "hotp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "bob",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": null,
+      "counter": 18446744073709551615
+    },
+    {
+      "name": "hotp-explicit-defaults-are-omitted",
+      "uri": "otpauth://hotp/Example:bob?secret=JBSWY3DPEHPK3PXP&issuer=Example&algorithm=SHA1&digits=6&counter=7",
+      "canonical": "otpauth://hotp/Example:bob?secret=JBSWY3DPEHPK3PXP&issuer=Example&counter=7",
+      "type": "hotp",
+      "secret_base32": "JBSWY3DPEHPK3PXP",
+      "secret_hex": "48656c6c6f21deadbeef",
+      "issuer": "Example",
+      "account": "bob",
+      "algorithm": "SHA1",
+      "digits": 6,
+      "period": null,
+      "counter": 7
+    }
+  ],
+  "invalid": [
+    {
+      "name": "empty",
+      "uri": "",
+      "reason": "empty input"
+    },
+    {
+      "name": "wrong-scheme",
+      "uri": "https://totp/alice?secret=JBSWY3DPEHPK3PXP",
+      "reason": "scheme is not otpauth"
+    },
+    {
+      "name": "missing-slash",
+      "uri": "otpauth:/totp/alice?secret=JBSWY3DPEHPK3PXP",
+      "reason": "missing // after scheme"
+    },
+    {
+      "name": "empty-type",
+      "uri": "otpauth:///alice?secret=JBSWY3DPEHPK3PXP",
+      "reason": "empty OTP type"
+    },
+    {
+      "name": "missing-label-separator",
+      "uri": "otpauth://totp?secret=JBSWY3DPEHPK3PXP",
+      "reason": "no slash before label"
+    },
+    {
+      "name": "empty-label",
+      "uri": "otpauth://totp/?secret=JBSWY3DPEHPK3PXP",
+      "reason": "empty label"
+    },
+    {
+      "name": "unknown-type",
+      "uri": "otpauth://motp/alice?secret=JBSWY3DPEHPK3PXP",
+      "reason": "type is not totp/hotp"
+    },
+    {
+      "name": "extra-path-segment",
+      "uri": "otpauth://totp/alice/extra?secret=JBSWY3DPEHPK3PXP",
+      "reason": "raw slash inside label"
+    },
+    {
+      "name": "fragment",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP#frag",
+      "reason": "fragments are not supported"
+    },
+    {
+      "name": "missing-secret",
+      "uri": "otpauth://totp/alice",
+      "reason": "secret parameter is required"
+    },
+    {
+      "name": "empty-secret",
+      "uri": "otpauth://totp/alice?secret=",
+      "reason": "empty secret"
+    },
+    {
+      "name": "invalid-base32-character",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PX1",
+      "reason": "1 is not a Base32 character"
+    },
+    {
+      "name": "base32-padding-inside-data",
+      "uri": "otpauth://totp/alice?secret=MZXW6%3D%3D%3DAA",
+      "reason": "padding inside Base32 data"
+    },
+    {
+      "name": "base32-invalid-length",
+      "uri": "otpauth://totp/alice?secret=A",
+      "reason": "impossible unpadded Base32 length"
+    },
+    {
+      "name": "base32-non-canonical-padding",
+      "uri": "otpauth://totp/alice?secret=MZXW6==",
+      "reason": "padding count does not match data length"
+    },
+    {
+      "name": "non-ascii-secret",
+      "uri": "otpauth://totp/alice?secret=%FF",
+      "reason": "secret must be ASCII Base32"
+    },
+    {
+      "name": "duplicate-secret",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&secret=MZXW6",
+      "reason": "duplicate parameter"
+    },
+    {
+      "name": "duplicate-secret-different-case",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&SECRET=MZXW6",
+      "reason": "keys are case-insensitive for duplicate detection"
+    },
+    {
+      "name": "duplicate-issuer",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&issuer=A&issuer=A",
+      "reason": "duplicate parameter"
+    },
+    {
+      "name": "unknown-parameter",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&image=x",
+      "reason": "unsupported parameter"
+    },
+    {
+      "name": "percent-encoded-key",
+      "uri": "otpauth://totp/alice?sec%72et=JBSWY3DPEHPK3PXP",
+      "reason": "parameter names are not percent-decoded"
+    },
+    {
+      "name": "digits-seven",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&digits=7",
+      "reason": "digits must be 6 or 8"
+    },
+    {
+      "name": "digits-leading-zero",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&digits=06",
+      "reason": "digits are not canonical"
+    },
+    {
+      "name": "algorithm-md5",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&algorithm=MD5",
+      "reason": "unsupported algorithm"
+    },
+    {
+      "name": "period-zero",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&period=0",
+      "reason": "period below 1"
+    },
+    {
+      "name": "period-too-large",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&period=86401",
+      "reason": "period above 86400"
+    },
+    {
+      "name": "period-negative",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&period=-30",
+      "reason": "period is not an unsigned decimal"
+    },
+    {
+      "name": "period-explicit-plus",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&period=%2B30",
+      "reason": "plus sign is not canonical"
+    },
+    {
+      "name": "period-leading-zero",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&period=030",
+      "reason": "period is not canonical"
+    },
+    {
+      "name": "hotp-missing-counter",
+      "uri": "otpauth://hotp/alice?secret=JBSWY3DPEHPK3PXP",
+      "reason": "HOTP requires counter"
+    },
+    {
+      "name": "totp-with-counter",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&counter=1",
+      "reason": "counter is not valid for TOTP"
+    },
+    {
+      "name": "hotp-with-period",
+      "uri": "otpauth://hotp/alice?secret=JBSWY3DPEHPK3PXP&counter=1&period=30",
+      "reason": "period is not valid for HOTP"
+    },
+    {
+      "name": "counter-negative",
+      "uri": "otpauth://hotp/alice?secret=JBSWY3DPEHPK3PXP&counter=-1",
+      "reason": "counter is not an unsigned decimal"
+    },
+    {
+      "name": "counter-overflow",
+      "uri": "otpauth://hotp/alice?secret=JBSWY3DPEHPK3PXP&counter=18446744073709551616",
+      "reason": "counter exceeds u64"
+    },
+    {
+      "name": "counter-leading-zero",
+      "uri": "otpauth://hotp/alice?secret=JBSWY3DPEHPK3PXP&counter=042",
+      "reason": "counter is not canonical"
+    },
+    {
+      "name": "issuer-contradiction",
+      "uri": "otpauth://totp/A:alice?secret=JBSWY3DPEHPK3PXP&issuer=B",
+      "reason": "label issuer and parameter differ"
+    },
+    {
+      "name": "empty-issuer-parameter",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&issuer=",
+      "reason": "issuer parameter is empty"
+    },
+    {
+      "name": "empty-label-issuer",
+      "uri": "otpauth://totp/:alice?secret=JBSWY3DPEHPK3PXP",
+      "reason": "empty issuer before colon"
+    },
+    {
+      "name": "empty-account",
+      "uri": "otpauth://totp/Example:?secret=JBSWY3DPEHPK3PXP",
+      "reason": "empty account after colon"
+    },
+    {
+      "name": "multiple-raw-colons",
+      "uri": "otpauth://totp/A:B:C?secret=JBSWY3DPEHPK3PXP",
+      "reason": "only one raw colon is allowed"
+    },
+    {
+      "name": "invalid-percent-escape-label",
+      "uri": "otpauth://totp/ali%ZZce?secret=JBSWY3DPEHPK3PXP",
+      "reason": "non-hex percent escape"
+    },
+    {
+      "name": "truncated-percent-escape-label",
+      "uri": "otpauth://totp/ali%4?secret=JBSWY3DPEHPK3PXP",
+      "reason": "truncated percent escape"
+    },
+    {
+      "name": "percent-null-account",
+      "uri": "otpauth://totp/ali%00ce?secret=JBSWY3DPEHPK3PXP",
+      "reason": "control character in account"
+    },
+    {
+      "name": "percent-newline-account",
+      "uri": "otpauth://totp/ali%0Ace?secret=JBSWY3DPEHPK3PXP",
+      "reason": "control character in account"
+    },
+    {
+      "name": "invalid-utf8-account",
+      "uri": "otpauth://totp/%FF?secret=JBSWY3DPEHPK3PXP",
+      "reason": "account is not valid UTF-8"
+    },
+    {
+      "name": "raw-non-ascii-account",
+      "uri": "otpauth://totp/алиса?secret=JBSWY3DPEHPK3PXP",
+      "reason": "raw non-ASCII must be percent-encoded"
+    },
+    {
+      "name": "raw-space-account",
+      "uri": "otpauth://totp/alice smith?secret=JBSWY3DPEHPK3PXP",
+      "reason": "raw space must be percent-encoded"
+    },
+    {
+      "name": "empty-query",
+      "uri": "otpauth://totp/alice?",
+      "reason": "empty query string"
+    },
+    {
+      "name": "empty-query-item",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&&issuer=A",
+      "reason": "empty query item"
+    },
+    {
+      "name": "query-item-without-equals",
+      "uri": "otpauth://totp/alice?secret",
+      "reason": "parameter must have key=value"
+    },
+    {
+      "name": "empty-parameter-key",
+      "uri": "otpauth://totp/alice?=x&secret=JBSWY3DPEHPK3PXP",
+      "reason": "empty parameter key"
+    },
+    {
+      "name": "algorithm-non-ascii-case-fold",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&algorithm=%C5%BFHA1",
+      "reason": "algorithm matching is ASCII-only; Unicode case folding is not applied"
+    },
+    {
+      "name": "semicolon-separator",
+      "uri": "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP;issuer=A",
+      "reason": "only & separates parameters"
+    }
+  ]
+}
