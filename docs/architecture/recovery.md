@@ -2,6 +2,8 @@
 
 Status: proposed design (2026-11-19). Scope: offline-first Rust desktop and independent Go MFA verifier. This proposal does not imply implementation.
 
+Related: [recovery threat model](../../security/recovery-threat-model.md), [device lifecycle](device-lifecycle.md), [ADR-003](../../security/adr/0003-crypto.md), [ADR-004](../../security/adr/0004-vault.md), [TODO](../../TODO.md) (`REC-001`…`REC-003`, `SRV-007`).
+
 ## Recovery boundaries
 
 1. Desktop personal recovery: portable password-encrypted vault backup; no server, cloud, hardware-bound unlock key, or mandatory keyring. Existing vault v1 and ADR-004 remain authoritative; reuse its format/crypto and atomic persistence, do not invent a second incompatible vault format.

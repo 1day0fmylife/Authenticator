@@ -1,6 +1,8 @@
 # Recovery threat model
 
-Status: proposal. Related: security/threat-model.md, security/adr/0003-crypto.md, security/adr/0004-vault.md.
+Status: proposal v0.1 (2026-11-19). Related: [threat-model.md](threat-model.md), [recovery.md](../docs/architecture/recovery.md), [device-lifecycle.md](../docs/architecture/device-lifecycle.md), [ADR-003](adr/0003-crypto.md), [ADR-004](adr/0004-vault.md), [TODO](../TODO.md) (`REC-001`…`REC-003`, `SRV-007`).
+
+Это дополнение к [основному threat model](threat-model.md), а не его замена: домены desktop/vault/CI остаются в `threat-model.md`, здесь детализируются recovery-потоки. Документ описывает модель, а не подтверждает реализацию.
 
 Assets: desktop OTP seeds, backup passphrase, encrypted backup, verifier-side MFA seeds, recovery code verifiers, service identities, admin approvals, audit trail.
 

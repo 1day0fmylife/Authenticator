@@ -172,6 +172,8 @@ GET  /health/ready
 
 Актуальный реестр активов, trust boundaries, угроз и остаточных рисков: [security/threat-model.md](security/threat-model.md) (SEC-001). Ниже — сводка.
 
+Recovery-потоки детализированы отдельно: [recovery threat model](security/recovery-threat-model.md), границы восстановления — [recovery.md](docs/architecture/recovery.md), managed lifecycle — [device-lifecycle.md](docs/architecture/device-lifecycle.md) (proposals, `REC-001`…`REC-003`).
+
 Угрозы: повреждение локального vault, кража зашифрованного backup и offline password guessing, компрометация desktop-процесса/ОС, фишинг TOTP, compromised MFA database или service identity, серверный replay, brute force, гонки, tenant IDOR, malware/typosquatting crates, malicious build scripts, подмена toolchain и обновлений, rollback/migration failure.
 
 **Security Definition of Done**:
@@ -203,4 +205,5 @@ GET  /health/ready
 - Конкретные криптографические Rust crates, AEAD, параметры Argon2id, backup/vault format.
 - Windows/Ubuntu installers, подпись пакетов и совместимость версий ОС.
 - Trust scheme (mTLS/service token), ограничения challenge, key rotation и HA для Go backend.
+- Recovery codes и managed factor reset: формат и энтропия, хранение verifier'ов, атомарное погашение, reset-token, dual control, границы relying party (ADR-006, REC-002).
 - ~~Лицензия собственного репозитория~~ — решено 15.11.2026: `MIT OR Apache-2.0` ([LICENSE-MIT](LICENSE-MIT), [LICENSE-APACHE](LICENSE-APACHE)); policy security disclosure — [SECURITY.md](SECURITY.md).

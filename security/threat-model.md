@@ -1,8 +1,8 @@
 # Threat Model — Authenticator
 
-**Статус:** Draft v0.1, 15.11.2026.
+**Статус:** Draft v0.2, 19.11.2026.
 **Область:** desktop Authenticator (Rust, Windows/Ubuntu), Go MFA verifier, общие `otpauth://`/RFC-компоненты, упаковка, CI/CD и обновления.
-**Связанные документы:** [README](../README.md), [PLAN](../PLAN.md), [TODO](../TODO.md), [AGENTS](../AGENTS.md), [supply-chain](supply-chain.md), ADR в `security/adr/`.
+**Связанные документы:** [README](../README.md), [PLAN](../PLAN.md), [TODO](../TODO.md), [AGENTS](../AGENTS.md), [supply-chain](supply-chain.md), [recovery threat model](recovery-threat-model.md), ADR в `security/adr/`.
 
 Это рабочий документ, а не заявление о готовности или о пройденном аудите. Он описывает **модель**, а не подтверждает реализацию: большинство мер ниже пока имеют статус *planned* и закрываются соответствующими TODO ID. Формулировки «защищено» допустимы только после появления тестов/артефактов, указанных в колонке «Проверка».
 
@@ -187,6 +187,8 @@ TB-12: CI/CD, dependency ingestion, mirror → build → signing → distributio
 | T-S16 | Утечка через audit/метрики high-cardinality private labels | Medium | Только безопасные поля, никаких subject/tenant в публичных метриках (SRV-009) | Review метрик | planned |
 | T-S17 | Verifier ошибочно считается «phishing-resistant» | High | Документация и API-семантика явно ограничивают TOTP; WebAuthn — отдельный фактор | Review документации | planned |
 
+Recovery-потоки (recovery codes, enterprise reset, lost device, backup rollback) детализированы отдельно: [recovery-threat-model.md](recovery-threat-model.md). Записи `T-S9` здесь и там описывают одну и ту же угрозу; при расхождении приоритет имеет этот документ, а детали параметров — ADR-006 (`REC-002`).
+
 ### 7.5 CI/CD и supply chain
 
 | ID | Угроза | Impact | Меры | Проверка | Статус |
@@ -262,6 +264,7 @@ TB-12: CI/CD, dependency ingestion, mirror → build → signing → distributio
 | GUI framework и его поверхность атаки | ADR-002, GUI-001 | Dependency graph, native/unsafe, Wayland/X11, clipboard |
 | Service authentication (mTLS vs scoped tokens) | ADR-005, SRV-003 | Trust scheme, scopes, rotation, tenant resolution |
 | Challenge/TTL/rate-limit/replay policy | ADR-005, SRV-005 | Точные параметры, транзакционная семантика |
+| Recovery codes, managed factor reset, dual control | ADR-006, REC-002, SRV-007 | Формат/энтропия кодов, хранение verifier'ов, атомарное погашение, reset-token, rate limit в БД, fail-closed, границы relying party |
 | Модель обновлений и подписи | GUI-005, SUP-003 | Offline verification, ключи, rollback policy |
 | Политика security disclosure и лицензия | PLAN §7 | Канал, SLA, публикация |
 
@@ -293,3 +296,4 @@ TB-12: CI/CD, dependency ingestion, mirror → build → signing → distributio
 | Дата | Версия | Изменение |
 | --- | --- | --- |
 | 15.11.2026 | 0.1 | Первичная публикация: активы, акторы, TB, угрозы по 7 доменам, остаточные риски, открытые ADR |
+| 19.11.2026 | 0.2 | Ссылка на [recovery threat model](recovery-threat-model.md); открытый вопрос recovery → ADR-006 (`REC-002`) |
