@@ -1,6 +1,6 @@
 # Managed device and factor lifecycle
 
-Status: proposal v0.1 (2026-11-19). Related: [recovery.md](recovery.md), [recovery threat model](../../security/recovery-threat-model.md), [TODO](../../TODO.md) (`REC-002`/`REC-003`, `SRV-007`).
+Status: proposal v0.1 (2026-11-19). Related: [recovery.md](recovery.md), [recovery threat model](../../security/recovery-threat-model.md), [TODO](../../TODO.md) (`REC-002`/`REC-003`, `SRV-007`), [ADR-006](../../security/adr/0006-recovery.md) (proposed).
 
 Distinguish device inventory from TOTP seed enrollment: standard offline TOTP has no cryptographic device identity.
 

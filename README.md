@@ -122,6 +122,7 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 - [security/supply-chain.md](security/supply-chain.md) — политика зависимостей, toolchain, SBOM и offline build.
 - [security/adr/0003-crypto.md](security/adr/0003-crypto.md) — принятые crypto crates, AEAD, Argon2id и ключевой envelope.
 - [security/adr/0004-vault.md](security/adr/0004-vault.md) — бинарный формат vault v1, лимиты, atomic write и восстановление.
+- [security/adr/0006-recovery.md](security/adr/0006-recovery.md) — recovery codes и managed factor reset (proposed).
 - [SECURITY.md](SECURITY.md) — как сообщить об уязвимости и политика раскрытия.
 
 **Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP; формат vault v1 и его fixtures уже реализованы ([ADR-004](security/adr/0004-vault.md), [fixtures](tests/vault/v1/README.md)), in-memory сессия (VAULT-002) и Linux persistence (VAULT-003, частично) готовы; модель ошибок (VAULT-004), backup/export/import/restore для Linux (VAULT-005, частично) и headless `app-cli` (VAULT-006) готовы; дальше — Windows-части VAULT-003/005, затем GUI Dependency Gate и серверный verifier.

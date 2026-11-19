@@ -9,6 +9,7 @@
 | ADR-003 | RustCrypto crates, AEAD, Argon2id, key envelope | Accepted v1.0 | [0003-crypto.md](0003-crypto.md) |
 | ADR-004 | Формат vault v1, limits, recovery | Accepted v1.0 | [0004-vault.md](0004-vault.md) |
 | ADR-005 | Контракт Go verifier, service identity, session binding, replay, migrations | Open | `0005-verifier.md` (планируется) |
+| ADR-006 | Recovery codes и managed factor reset: формат, хранение, погашение, reset-authorization, dual control | Proposed v0.1 | [0006-recovery.md](0006-recovery.md) |
 
 ## Правила
 
