@@ -88,6 +88,8 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 
 **Infrastructure:** pinned toolchains, независимые checksums, signed provenance, SBOM SPDX/CycloneDX, уязвимости + лицензии, controlled ingestion → offline build; никаких сетевых скачиваний во время финального build и `curl | sh`.
 
+**CI:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) фиксирует Rust 1.91.0 (`rust-toolchain.toml`) и Go из `go.mod`, пинует actions по полному commit SHA, использует `permissions: contents: read` без секретов и кэшей. Проверки: Rust fmt/clippy/test/release `--frozen` на Ubuntu, `otp-core` tests и workspace check на Windows, Go fmt/vet/test/race/shared vectors и native Go fuzzing. Rust mutation-fuzz детерминированный и не coverage-guided; это ограничение указано в TODO (OTP-005).
+
 Цель — **уменьшить доверенную поверхность**, а не механически довести число зависимостей до нуля. Не писать собственные криптографические примитивы. Не считать «прошёл CVE scan» доказательством безопасности.
 
 ### Совместимость и стандарты (ADR-001)

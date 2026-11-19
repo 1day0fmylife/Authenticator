@@ -1,2 +1,6 @@
 /target
 /desktop/target
+
+# Go fuzzing failure artifacts can contain key material copied from the seed
+# corpus; reproduce locally and add a redacted regression vector instead.
+/server/internal/otp/testdata/fuzz/
