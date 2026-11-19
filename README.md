@@ -93,7 +93,8 @@ server/                    # Go MFA-verifier: internal/otp, internal/api (skelet
 api/                       # OpenAPI (не создан)
 tests/vectors/             # shared RFC test fixtures (созданы)
 tests/vault/v1/            # synthetic vault v1 fixtures + manifest (созданы)
-security/                  # threat model, ADR, supply-chain policy
+security/                  # threat model, ADR, supply-chain policy, recovery threat model
+docs/architecture/         # recovery и managed device lifecycle (proposals)
 packaging/                 # Windows/Ubuntu offline releases
 README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 ```
@@ -115,6 +116,9 @@ README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 - [AGENTS.md](AGENTS.md) — обязательные правила всех coding agents.
 - [CLAUDE.md](CLAUDE.md) — дополнительные инструкции для Claude Code.
 - [security/threat-model.md](security/threat-model.md) — активы, акторы, trust boundaries, угрозы и остаточные риски.
+- [security/recovery-threat-model.md](security/recovery-threat-model.md) — детализация угроз recovery, backup и managed factor reset.
+- [docs/architecture/recovery.md](docs/architecture/recovery.md) — границы восстановления desktop/verifier (proposal).
+- [docs/architecture/device-lifecycle.md](docs/architecture/device-lifecycle.md) — managed device/factor lifecycle (proposal).
 - [security/supply-chain.md](security/supply-chain.md) — политика зависимостей, toolchain, SBOM и offline build.
 - [security/adr/0003-crypto.md](security/adr/0003-crypto.md) — принятые crypto crates, AEAD, Argon2id и ключевой envelope.
 - [security/adr/0004-vault.md](security/adr/0004-vault.md) — бинарный формат vault v1, лимиты, atomic write и восстановление.

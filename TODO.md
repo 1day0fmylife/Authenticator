@@ -13,6 +13,14 @@
 - [x] **ADR-004** Утвердить формат vault v1 и ключевые сценарии восстановления. **Готово:** открытая спецификация с версиями, limits, nonce/AAD, KDF migration, atomic writes, error handling. → [`security/adr/0004-vault.md`](security/adr/0004-vault.md): envelope 80 байт, payload/record v1, лимиты 16 MiB/10 000 записей, AAD, `.bak`/lock/conflict, backup/export/import/restore, error model. Код и fixtures — VAULT-001…005.
 - [ ] **ADR-005** Утвердить контракт Go verifier, доверенные сервисные identity, session binding, replay policy и migration scheme. **Готово:** OpenAPI + sequence diagrams + негативные тесты.
 
+## P0 — recovery и managed factor lifecycle
+
+Модель восстановления внедряется отдельно от core OTP: сначала документы и ADR, затем серверные задачи в порядке SRV-002…007. Ни один пункт ниже не разрешает обход MFA и не переносит identity proofing или уведомления в verifier — это обязанность relying party.
+
+- [x] **REC-001** Принять recovery/device-lifecycle документы в управление проектом. **Готово:** документы лежат в [`security/recovery-threat-model.md`](security/recovery-threat-model.md) и [`docs/architecture/`](docs/architecture/), на них ссылаются README/TODO/threat model; добавлены TODO ID, зависимости и явные блокеры. Смысл документов не изменялся. → [`recovery.md`](docs/architecture/recovery.md), [`device-lifecycle.md`](docs/architecture/device-lifecycle.md).
+- [ ] **REC-002** Оформить ADR-006: recovery codes и managed factor reset. **Готово:** ADR принят и содержит trust boundaries, формат/энтропию кодов, хранение verifier'ов, атомарное однократное погашение, reset-token, rate limit в PostgreSQL, fail-closed и поля аудита; OpenAPI и handlers не пишутся до принятия. Блокирует `SRV-007`; зависит от `ADR-005`.
+- [ ] **REC-003** (P1) Managed device inventory, dual-control approval workflow и уведомления. **Готово:** инвентарь отражает только managed credentials и не выводит физическое устройство из TOTP; approvals хранят actor/approver/reason/time без секретов, self-approval запрещён политикой; уведомления остаются обязанностью relying party. Зависит от `REC-002`, `SRV-007`, `SRV-009`.
+
 ## P0 — общий OTP protocol core
 
 - [x] **OTP-001** Подготовить общие публичные RFC 4226 / RFC 6238 векторы в `tests/vectors/`. **Готово:** SHA-1/256/512, временные границы, HOTP counters, 6/8 digits, собственные и независимые проверочные реализации. → 71 вектор в [`tests/vectors/`](tests/vectors/README.md); независимая проверка `cd server && go run ./cmd/verify-vectors` (stdlib Go, Python не используется).
@@ -48,7 +56,7 @@
 - [ ] **SRV-004** Реализовать TOTP enrollment start/confirm с short TTL и secure seed handling. **Готово:** enrolment невозможно без доверенной сессии backend и подтверждения действительным OTP.
 - [ ] **SRV-005** Реализовать challenge/verify с session-binding, atomic used-step/replay barrier, tenant isolation и rate limit в PostgreSQL. **Готово:** конкурентные проверки одного OTP/time-step принимаются не больше одного раза.
 - [ ] **SRV-006** Реализовать AEAD encryption-at-rest и key rotation с key IDs. **Готово:** секреты отсутствуют в plaintext DB/log/image; key material поступает извне; migration/rotation tests проходят.
-- [ ] **SRV-007** Реализовать безопасные одноразовые recovery codes, disable и re-enrollment. **Готово:** step-up/controlled recovery, атомарное погашение кода, без обхода MFA при ошибке БД.
+- [ ] **SRV-007** Реализовать безопасные одноразовые recovery codes, disable и re-enrollment. **Готово:** step-up/controlled recovery, атомарное погашение кода, без обхода MFA при ошибке БД. **Зависимости:** `ADR-006`/`REC-002` (проектирование), `SRV-002`…`SRV-006` (схема, service auth, enrollment, verify, encryption at rest); не начинать раньше них.
 - [ ] **SRV-008** Сформировать `api/openapi.yaml` и контрактные тесты. **Готово:** доверенная интеграция с FastAPI/Go без привязки к фреймворку.
 - [ ] **SRV-009** Добавить privacy-preserving audit, readiness/liveness, basic metrics. **Готово:** нет OTP/seed/паролей/recovery plaintext, high-cardinality private labels исключены.
 
