@@ -187,7 +187,7 @@ TB-12: CI/CD, dependency ingestion, mirror → build → signing → distributio
 | T-S16 | Утечка через audit/метрики high-cardinality private labels | Medium | Только безопасные поля, никаких subject/tenant в публичных метриках (SRV-009) | Review метрик | planned |
 | T-S17 | Verifier ошибочно считается «phishing-resistant» | High | Документация и API-семантика явно ограничивают TOTP; WebAuthn — отдельный фактор | Review документации | planned |
 
-Recovery-потоки (recovery codes, enterprise reset, lost device, backup rollback) детализированы отдельно: [recovery-threat-model.md](recovery-threat-model.md). Записи `T-S9` здесь и там описывают одну и ту же угрозу; при расхождении приоритет имеет этот документ, а детали параметров — ADR-006 (`REC-002`).
+Recovery-потоки (recovery codes, enterprise reset, lost device, backup rollback) детализированы отдельно: [recovery-threat-model.md](recovery-threat-model.md). Записи `T-S9` здесь и там описывают одну и ту же угрозу; при расхождении приоритет имеет этот документ, а детали параметров — [ADR-006](adr/0006-recovery.md) (`REC-002`, proposed).
 
 ### 7.5 CI/CD и supply chain
 
@@ -264,7 +264,7 @@ Recovery-потоки (recovery codes, enterprise reset, lost device, backup rol
 | GUI framework и его поверхность атаки | ADR-002, GUI-001 | Dependency graph, native/unsafe, Wayland/X11, clipboard |
 | Service authentication (mTLS vs scoped tokens) | ADR-005, SRV-003 | Trust scheme, scopes, rotation, tenant resolution |
 | Challenge/TTL/rate-limit/replay policy | ADR-005, SRV-005 | Точные параметры, транзакционная семантика |
-| Recovery codes, managed factor reset, dual control | ADR-006, REC-002, SRV-007 | Формат/энтропия кодов, хранение verifier'ов, атомарное погашение, reset-token, rate limit в БД, fail-closed, границы relying party |
+| Recovery codes, managed factor reset, dual control | [ADR-006](adr/0006-recovery.md), REC-002, SRV-007 | Формат/энтропия кодов, хранение verifier'ов, атомарное погашение, reset-token, rate limit в БД, fail-closed, границы relying party |
 | Модель обновлений и подписи | GUI-005, SUP-003 | Offline verification, ключи, rollback policy |
 | Политика security disclosure и лицензия | PLAN §7 | Канал, SLA, публикация |
 
