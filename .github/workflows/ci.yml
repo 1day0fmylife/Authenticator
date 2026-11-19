@@ -1,0 +1,148 @@
+name: CI
+
+# Supply-chain notes:
+# - every action is pinned to a full commit SHA (the version in the comment is
+#   informational); nothing is referenced by tag or branch;
+# - no cache, artifact, upload or third-party build actions are used;
+# - the workflow has read-only repository permissions and no secrets;
+# - Rust is pinned by desktop/rust-toolchain.toml (1.91.0) and installed from
+#   the runner's rustup with component checksums;
+# - Go is pinned by server/go.mod and GOTOOLCHAIN=local, so a missing exact
+#   toolchain fails instead of silently downloading another one.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_TOOLCHAIN: "1.91.0"
+  GOTOOLCHAIN: local
+
+jobs:
+  rust-linux:
+    name: Rust (ubuntu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # actions/checkout v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --component rustfmt,clippy
+
+      - name: Check formatting
+        working-directory: desktop
+        run: cargo fmt --all -- --check
+
+      - name: Clippy (deny warnings)
+        working-directory: desktop
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      - name: Test workspace
+        working-directory: desktop
+        run: cargo test --workspace --locked
+
+      - name: Release build (offline, locked)
+        working-directory: desktop
+        run: cargo build --workspace --release --frozen
+
+  rust-windows:
+    name: Rust (windows)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      # actions/checkout v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install "$env:RUST_TOOLCHAIN" --profile minimal
+
+      # otp-core is platform independent; this is the required Windows signal
+      # for the OTP contract.
+      - name: Test otp-core
+        working-directory: desktop
+        run: cargo test -p otp-core --locked
+
+      # Compile every workspace target for Windows. Cross-compiling the same
+      # check on Linux succeeds, but VAULT-003 still lacks real Windows runtime
+      # tests, so vault tests are not claimed here.
+      - name: Check workspace targets
+        working-directory: desktop
+        run: cargo check --workspace --all-targets --locked
+
+  go:
+    name: Go verifier
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # actions/checkout v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      # actions/setup-go v5.6.0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: server/go.mod
+          cache: false
+
+      - name: Check formatting
+        working-directory: server
+        run: test -z "$(gofmt -l .)"
+
+      - name: Vet
+        working-directory: server
+        run: go vet ./...
+
+      - name: Test
+        working-directory: server
+        run: go test ./...
+
+      - name: Race tests
+        working-directory: server
+        run: go test -race ./...
+
+      - name: Shared vectors
+        working-directory: server
+        run: go run ./cmd/verify-vectors
+
+  fuzz:
+    name: Fuzz (Go)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # actions/checkout v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      # actions/setup-go v5.6.0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: server/go.mod
+          cache: false
+
+      # Native Go fuzzing is part of the standard library; no fuzz corpus is
+      # cached and no crashers are uploaded, because artifacts may contain key
+      # material. A finding fails the job.
+      - name: Fuzz otpauth:// parser
+        working-directory: server
+        run: go test ./internal/otp -run '^$' -fuzz '^FuzzParseURI$' -fuzztime=30s
+
+      - name: Fuzz HOTP/TOTP core
+        working-directory: server
+        run: go test ./internal/otp -run '^$' -fuzz '^FuzzOTP$' -fuzztime=30s

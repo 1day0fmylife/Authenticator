@@ -93,13 +93,16 @@ server/                    # Go MFA-verifier: internal/otp, internal/api (skelet
 api/                       # OpenAPI (не создан)
 tests/vectors/             # shared RFC test fixtures (созданы)
 tests/vault/v1/            # synthetic vault v1 fixtures + manifest (созданы)
+.github/workflows/         # CI: Rust (ubuntu/windows), Go, native Go fuzzing (создан)
 security/                  # threat model, ADR, supply-chain policy, recovery threat model
 docs/architecture/         # recovery и managed device lifecycle (proposals)
 packaging/                 # Windows/Ubuntu offline releases
 README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
 ```
 
-`desktop/crates/otp-core`, `desktop/crates/vault`, `desktop/crates/app-cli`, `server/internal/otp`, `server/cmd/verify-vectors`, `tests/vectors` и `tests/vault/v1` уже существуют; остальные каталоги с исходным кодом — **план**.
+`desktop/crates/otp-core`, `desktop/crates/vault`, `desktop/crates/app-cli`, `server/internal/otp`, `server/cmd/verify-vectors`, `tests/vectors`, `tests/vault/v1` и `.github/workflows/ci.yml` уже существуют; остальные каталоги с исходным кодом — **план**.
+
+CI ([`ci.yml`](.github/workflows/ci.yml)) фиксирует Rust 1.91.0 из `rust-toolchain.toml` и Go из `go.mod`, пинует actions по commit SHA, работает с `permissions: contents: read` и без секретов. Jobs: Rust fmt/clippy/test/release `--frozen` на Ubuntu, `otp-core` tests + workspace check на Windows, Go fmt/vet/test/race/shared vectors и 30-секундный native Go fuzzing. Rust mutation-fuzz детерминированный (фиксированный seed, без nightly/libFuzzer), поэтому он не заменяет coverage-guided fuzzing; реальные Windows runtime tests для vault остаются в VAULT-003.
 
 ## Порядок реализации
 
