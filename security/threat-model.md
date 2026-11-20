@@ -172,8 +172,8 @@ TB-12: CI/CD, dependency ingestion, mirror → build → signing → distributio
 | T-S1 | Browser/client подставляет произвольный tenant → IDOR | Critical | Tenant из service identity; subject валидируется в tenant; tenant-bound FK/UNIQUE (SRV-003/002) | Cross-tenant negative tests | planned |
 | T-S2 | Повторное использование одного OTP/time-step, в т.ч. конкурентно | Critical | Атомарное однократное принятие шага в транзакции, replay barrier, row locks/constraints (SRV-005) | Race/concurrency тесты | planned |
 | T-S3 | Перебор кодов | High | Rate limit в PostgreSQL (не только память), лимиты попыток challenge/subject/tenant, fail closed (SRV-005) | Нагрузочные/негативные тесты | planned |
-| T-S4 | Replay чужого challenge / отсутствие session binding | High | Challenge связан с tenant+subject+purpose+session_binding, TTL, одноразовость (SRV-005, ADR-005) | Negative tests на binding | planned |
-| T-S5 | Кража дампа БД → plaintext seeds | Critical | AEAD at rest, ключи вне БД/образа, key rotation c `key_id` (SRV-006, ADR-005) | Проверка дампа на plaintext, rotation tests | planned |
+| T-S4 | Replay чужого challenge / отсутствие session binding | High | Challenge связан с tenant+subject+purpose+session_binding, TTL, одноразовость (SRV-005, [ADR-005](adr/0005-verifier.md)) | Negative tests на binding | planned |
+| T-S5 | Кража дампа БД → plaintext seeds | Critical | AEAD at rest, ключи вне БД/образа, key rotation c `key_id` (SRV-006, [ADR-005](adr/0005-verifier.md)) | Проверка дампа на plaintext, rotation tests | planned |
 | T-S6 | Скомпрометированная service identity обращается к чужим данным | High | mTLS/scoped credentials, минимальные scopes, rotation, audit (SRV-003) | Cross-service/IDOR тесты | planned |
 | T-S7 | Fail-open при недоступности БД/verifier или ошибке проверки | Critical | Любая ошибка = отказ; backend не должен повышать сессию без явного success (SRV-005, INT-001) | Chaos/outage тесты | planned |
 | T-S8 | Enrollment без доверенной сессии/подтверждения | Critical | Enrollment start/confirm только через service identity, short TTL, подтверждение валидным OTP (SRV-004) | Negative tests | planned |
@@ -262,8 +262,8 @@ Recovery-потоки (recovery codes, enterprise reset, lost device, backup rol
 | Конкретные RustCrypto crates, AEAD, Argon2id параметры, key envelope | ADR-003 | Минимальный граф, лицензии, nonce/AAD, test vectors |
 | Бинарный формат vault v1, limits, backup | ADR-004, VAULT-001 | Версии, поля, KDF migration, atomic write, error model |
 | GUI framework и его поверхность атаки | ADR-002, GUI-001 | Dependency graph, native/unsafe, Wayland/X11, clipboard |
-| Service authentication (mTLS vs scoped tokens) | ADR-005, SRV-003 | Trust scheme, scopes, rotation, tenant resolution |
-| Challenge/TTL/rate-limit/replay policy | ADR-005, SRV-005 | Точные параметры, транзакционная семантика |
+| Service authentication (mTLS vs scoped tokens) | [ADR-005](adr/0005-verifier.md) (`Proposed v0.1`), SRV-003 | mTLS-only, scopes, rotation, tenant resolution; до `Accepted` — открытые вопросы §8 |
+| Challenge/TTL/rate-limit/replay policy | [ADR-005](adr/0005-verifier.md) (`Proposed v0.1`), SRV-005 | TTL, окно ±1, atomic `last_accepted_step`, идемпотентность, лимиты в PostgreSQL; параметры — §8 |
 | Recovery codes, managed factor reset, dual control | [ADR-006](adr/0006-recovery.md), REC-002, SRV-007 | Формат/энтропия кодов, хранение verifier'ов, атомарное погашение, reset-token, rate limit в БД, fail-closed, границы relying party |
 | Модель обновлений и подписи | GUI-005, SUP-003 | Offline verification, ключи, rollback policy |
 | Политика security disclosure и лицензия | PLAN §7 | Канал, SLA, публикация |
@@ -297,3 +297,4 @@ Recovery-потоки (recovery codes, enterprise reset, lost device, backup rol
 | --- | --- | --- |
 | 15.11.2026 | 0.1 | Первичная публикация: активы, акторы, TB, угрозы по 7 доменам, остаточные риски, открытые ADR |
 | 19.11.2026 | 0.2 | Ссылка на [recovery threat model](recovery-threat-model.md); открытый вопрос recovery → ADR-006 (`REC-002`) |
+| 20.11.2026 | 0.3 | [ADR-005](adr/0005-verifier.md) предложен (`Proposed v0.1`): mTLS/tenant resolution, session binding, atomic replay, AES-256-GCM/`key_id`, миграции; вопросы §8 остаются открытыми |

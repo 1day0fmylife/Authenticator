@@ -1,7 +1,7 @@
 # ADR-006: Recovery codes и managed factor reset
 
 **Статус:** Proposed v0.1, 19.11.2026. Не принят и не является разрешением на реализацию: до `Accepted` нужен security review и фиксация параметров из раздела «Открытые вопросы».
-**Связанные документы:** [TODO](../../TODO.md) (`REC-002`, `REC-003`, `SRV-007`), [ADR-001](0001-independence.md), [ADR-003](0003-crypto.md), [ADR-004](0004-vault.md), ADR-005 (`0005-verifier.md`, планируется), [recovery.md](../../docs/architecture/recovery.md), [device-lifecycle.md](../../docs/architecture/device-lifecycle.md), [recovery threat model](../recovery-threat-model.md), [threat-model.md](../threat-model.md) (`T-S9`).
+**Связанные документы:** [TODO](../../TODO.md) (`REC-002`, `REC-003`, `SRV-007`), [ADR-001](0001-independence.md), [ADR-003](0003-crypto.md), [ADR-004](0004-vault.md), [ADR-005](0005-verifier.md) (proposed), [recovery.md](../../docs/architecture/recovery.md), [device-lifecycle.md](../../docs/architecture/device-lifecycle.md), [recovery threat model](../recovery-threat-model.md), [threat-model.md](../threat-model.md) (`T-S9`).
 
 ## 1. Контекст
 
@@ -112,13 +112,13 @@ BEGIN
 
 | Метод | Путь | Назначение |
 | --- | --- | --- |
-| POST | `/v1/recovery-codes:generate` | выпустить набор, вернуть коды один раз |
-| POST | `/v1/recovery-codes:redeem` | погасить код, получить reset-authorization |
-| GET | `/v1/subjects/{subject}/factors` | список managed-факторов (только метаданные) |
-| POST | `/v1/factors/{factor_id}:revoke` | отозвать фактор |
-| POST | `/v1/factors:reset` | подтвердить reset-authorization и начать enrollment |
+| POST | `/v1/mfa/recovery-codes` | выпустить набор, вернуть коды один раз |
+| POST | `/v1/mfa/recovery-codes/redeem` | погасить код, получить reset-authorization |
+| GET | `/v1/mfa/factors?subject=…` | список managed-факторов (только метаданные); общий контракт с ADR-005 |
+| POST | `/v1/mfa/factors/{factor_id}/revoke` | отозвать фактор; общий контракт с ADR-005 |
+| POST | `/v1/mfa/factors/reset` | подтвердить reset-authorization и начать enrollment |
 
-Правила: tenant только из service identity; ни один endpoint не возвращает существующий seed; все ответы — `problem+json` с устойчивыми `code`; имена/схемы фиксируются в `api/openapi.yaml` (SRV-008) до реализации.
+Правила: tenant только из service identity; ни один endpoint не возвращает существующий seed; все ответы — `problem+json` с устойчивыми `code`; имена/схемы фиксируются в `api/openapi.yaml` (SRV-008) до реализации. mTLS/scopes, tenant resolution, коды ошибок, аудит и key infrastructure наследуются из [ADR-005](0005-verifier.md); recovery-таблицы используют те же `tenant_id`/`subject_id` и не вводят второй способ аутентификации сервиса.
 
 ### 4.10. Схема и миграции
 

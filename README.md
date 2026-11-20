@@ -125,6 +125,7 @@ CI ([`ci.yml`](.github/workflows/ci.yml)) фиксирует Rust 1.91.0 из `r
 - [security/supply-chain.md](security/supply-chain.md) — политика зависимостей, toolchain, SBOM и offline build.
 - [security/adr/0003-crypto.md](security/adr/0003-crypto.md) — принятые crypto crates, AEAD, Argon2id и ключевой envelope.
 - [security/adr/0004-vault.md](security/adr/0004-vault.md) — бинарный формат vault v1, лимиты, atomic write и восстановление.
+- [security/adr/0005-verifier.md](security/adr/0005-verifier.md) — контракт Go verifier: mTLS, tenant isolation, enrollment/challenge/verify, replay, ключи и миграции (proposed).
 - [security/adr/0006-recovery.md](security/adr/0006-recovery.md) — recovery codes и managed factor reset (proposed).
 - [SECURITY.md](SECURITY.md) — как сообщить об уязвимости и политика раскрытия.
 
