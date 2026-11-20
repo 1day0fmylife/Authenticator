@@ -8,7 +8,7 @@
 | ADR-002 | GUI framework (egui/eframe vs Slint) после dependency/license/offline audit | Open | `0002-gui.md` (планируется) |
 | ADR-003 | RustCrypto crates, AEAD, Argon2id, key envelope | Accepted v1.0 | [0003-crypto.md](0003-crypto.md) |
 | ADR-004 | Формат vault v1, limits, recovery | Accepted v1.0 | [0004-vault.md](0004-vault.md) |
-| ADR-005 | Контракт Go verifier, service identity, session binding, replay, migrations | Open | `0005-verifier.md` (планируется) |
+| ADR-005 | Контракт Go verifier: mTLS/service identity, tenant resolution, session binding, replay, идемпотентность, схема и миграции | Proposed v0.1 | [0005-verifier.md](0005-verifier.md) |
 | ADR-006 | Recovery codes и managed factor reset: формат, хранение, погашение, reset-authorization, dual control | Proposed v0.1 | [0006-recovery.md](0006-recovery.md) |
 
 ## Правила

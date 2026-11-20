@@ -143,20 +143,23 @@ Backend приложения <-- MFA decision ----┘
 - Логи и аудит: без OTP/seed/QR/backup/recovery plaintext. Correlation ID, purpose, решение, причину отказа — только в безопасной форме, без subject enumeration.
 - OTP — **не phishing-resistant**; WebAuthn/FIDO2 проектируется в будущем как отдельный фактор, не должен быть неверно обозначен как уже реализованный.
 
-### 4.1. API (предложение; реализованы только `/health/*` — SRV-001)
+### 4.1. API (канонический контракт — ADR-005; реализованы только `/health/*` — SRV-001)
 
 ```http
-POST /v1/mfa/enrollments/start
-POST /v1/mfa/enrollments/{id}/confirm
+POST /v1/mfa/enrollments
+POST /v1/mfa/enrollments/{enrollment_id}/confirm
 POST /v1/mfa/challenges
-POST /v1/mfa/challenges/{id}/verify
-POST /v1/mfa/factors/{id}/disable
-POST /v1/mfa/recovery-codes/rotate
+POST /v1/mfa/challenges/{challenge_id}/verify
+GET  /v1/mfa/factors?subject=…
+POST /v1/mfa/factors/{factor_id}/revoke
+POST /v1/mfa/factors/reset
+POST /v1/mfa/recovery-codes
+POST /v1/mfa/recovery-codes/redeem
 GET  /health/live
 GET  /health/ready
 ```
 
-Схемы запросов/ответов, способы привязки к relying session, TTL, idempotency и ошибки согласовать в `api/openapi.yaml` перед реализацией.
+Детали (mTLS/scopes, tenant resolution, TTL, session binding, идемпотентность, replay, ошибки) — [ADR-005](security/adr/0005-verifier.md); recovery-операции — [ADR-006](security/adr/0006-recovery.md). Схемы и contract tests фиксируются в `api/openapi.yaml` (SRV-008) до реализации handlers.
 
 ### 4.2. Концептуальная схема данных
 
@@ -168,7 +171,7 @@ GET  /health/ready
 - `mfa_recovery_codes(id,tenant_id,subject_id,digest,used_at)`
 - `mfa_audit(id,tenant_id,subject_id,event,decision,created_at,correlation_id)`
 
-В SQL обязательно включить tenant-bound foreign keys, uniqueness, migrations и индексы. Схема пока проектная, не существует в БД. Idempotent confirmation и exact replay guard требуют отдельных транзакционных тестов.
+В SQL обязательно включить tenant-bound foreign keys, uniqueness, migrations и индексы. Схема пока проектная, не существует в БД. Канонические таблицы, ограничения, версионирование и запрет destructive rollback — [ADR-005 §4.10](security/adr/0005-verifier.md); idempotent confirmation и exact replay guard требуют отдельных транзакционных тестов.
 
 ## 5. Threat model и release gates
 
@@ -206,6 +209,6 @@ Recovery-потоки детализированы отдельно: [recovery t
 - GUI framework после измерения графа зависимостей и лицензий.
 - Конкретные криптографические Rust crates, AEAD, параметры Argon2id, backup/vault format.
 - Windows/Ubuntu installers, подпись пакетов и совместимость версий ОС.
-- Trust scheme (mTLS/service token), ограничения challenge, key rotation и HA для Go backend.
+- Trust scheme, ограничения challenge, key rotation и HA для Go backend — [ADR-005](security/adr/0005-verifier.md) (`Proposed v0.1`): mTLS-only, tenant из credential, session binding, atomic replay, AES-256-GCM/`key_id`, миграции; до `Accepted` остаются открытые вопросы §8.
 - Recovery codes и managed factor reset: формат и энтропия, хранение verifier'ов, атомарное погашение, reset-token, dual control, границы relying party (ADR-006, REC-002).
 - ~~Лицензия собственного репозитория~~ — решено 15.11.2026: `MIT OR Apache-2.0` ([LICENSE-MIT](LICENSE-MIT), [LICENSE-APACHE](LICENSE-APACHE)); policy security disclosure — [SECURITY.md](SECURITY.md).
