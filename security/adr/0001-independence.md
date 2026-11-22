@@ -137,7 +137,7 @@
 - [threat-model](../threat-model.md)
 - [supply-chain](../supply-chain.md)
 - [TODO](../../TODO.md): OTP-001…005, SRV-003…008, INT-001/002
-- Будущие ADR (файлы появятся при выполнении задач): `0002-gui.md`, `0003-crypto.md`, `0004-vault.md`, `0005-verifier.md`
+- ADR-002 (GUI) — планируется, `0002-gui.md`; [ADR-003](0003-crypto.md), [ADR-004](0004-vault.md), [ADR-005](0005-verifier.md), [ADR-006](0006-recovery.md) существуют.
 
 ## 8. Changelog
 

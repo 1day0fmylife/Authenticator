@@ -1,7 +1,7 @@
 # ADR-006: Recovery codes и managed factor reset
 
 **Статус:** Proposed v0.1, 19.11.2026. Не принят и не является разрешением на реализацию: до `Accepted` нужен security review и фиксация параметров из раздела «Открытые вопросы».
-**Связанные документы:** [TODO](../../TODO.md) (`REC-002`, `REC-003`, `SRV-007`), [ADR-001](0001-independence.md), [ADR-003](0003-crypto.md), [ADR-004](0004-vault.md), [ADR-005](0005-verifier.md) (proposed), [recovery.md](../../docs/architecture/recovery.md), [device-lifecycle.md](../../docs/architecture/device-lifecycle.md), [recovery threat model](../recovery-threat-model.md), [threat-model.md](../threat-model.md) (`T-S9`).
+**Связанные документы:** [TODO](../../TODO.md) (`REC-002`, `REC-003`, `SRV-007`), [ADR-001](0001-independence.md), [ADR-003](0003-crypto.md), [ADR-004](0004-vault.md), [ADR-005](0005-verifier.md) (accepted v0.2), [recovery.md](../../docs/architecture/recovery.md), [device-lifecycle.md](../../docs/architecture/device-lifecycle.md), [recovery threat model](../recovery-threat-model.md), [threat-model.md](../threat-model.md) (`T-S9`).
 
 ## 1. Контекст
 
