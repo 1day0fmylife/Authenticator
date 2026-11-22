@@ -173,7 +173,7 @@
 | Go module и `go.sum` | модуль создан, `go.sum` отсутствует (stdlib-only) |
 | Конкретные crypto crates | выбраны в ADR-003 |
 | GUI framework | не выбран (ADR-002 открыт) |
-| PostgreSQL драйвер | не выбран; SRV-002 по контракту [ADR-005](adr/0005-verifier.md) (`Proposed v0.1`), нужен pinned dependency review |
+| PostgreSQL драйвер | не выбран; SRV-002 по контракту [ADR-005](adr/0005-verifier.md) (`Accepted v0.2`), нужен pinned dependency review |
 | Vendor/mirror | отсутствует |
 | SBOM/подписи/CI | отсутствуют |
 | Лицензия проекта | `MIT OR Apache-2.0` (LICENSE-MIT, LICENSE-APACHE); зависимости должны быть с ней совместимы |

@@ -94,7 +94,7 @@ api/                       # OpenAPI (не создан)
 tests/vectors/             # shared RFC test fixtures (созданы)
 tests/vault/v1/            # synthetic vault v1 fixtures + manifest (созданы)
 .github/workflows/         # CI: Rust (ubuntu/windows), Go, native Go fuzzing (создан)
-security/                  # threat model, ADR, supply-chain policy, recovery threat model
+security/                  # threat model, ADR, supply-chain policy, recovery threat model, reviews
 docs/architecture/         # recovery и managed device lifecycle (proposals)
 packaging/                 # Windows/Ubuntu offline releases
 README.md  PLAN.md  TODO.md  AGENTS.md  CLAUDE.md  SECURITY.md
@@ -125,11 +125,12 @@ CI ([`ci.yml`](.github/workflows/ci.yml)) фиксирует Rust 1.91.0 из `r
 - [security/supply-chain.md](security/supply-chain.md) — политика зависимостей, toolchain, SBOM и offline build.
 - [security/adr/0003-crypto.md](security/adr/0003-crypto.md) — принятые crypto crates, AEAD, Argon2id и ключевой envelope.
 - [security/adr/0004-vault.md](security/adr/0004-vault.md) — бинарный формат vault v1, лимиты, atomic write и восстановление.
-- [security/adr/0005-verifier.md](security/adr/0005-verifier.md) — контракт Go verifier: mTLS, tenant isolation, enrollment/challenge/verify, replay, ключи и миграции (proposed).
+- [security/adr/0005-verifier.md](security/adr/0005-verifier.md) — контракт Go verifier: mTLS, tenant isolation, enrollment/challenge/verify, replay, ключи и миграции (accepted v0.2; независимый review — `QA-002`).
+- [security/reviews/0005-verifier-review.md](security/reviews/0005-verifier-review.md) — авторский security review ADR-005; не заменяет независимый `QA-002`.
 - [security/adr/0006-recovery.md](security/adr/0006-recovery.md) — recovery codes и managed factor reset (proposed).
 - [SECURITY.md](SECURITY.md) — как сообщить об уязвимости и политика раскрытия.
 
-**Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP; формат vault v1 и его fixtures уже реализованы ([ADR-004](security/adr/0004-vault.md), [fixtures](tests/vault/v1/README.md)), in-memory сессия (VAULT-002) и Linux persistence (VAULT-003, частично) готовы; модель ошибок (VAULT-004), backup/export/import/restore для Linux (VAULT-005, частично) и headless `app-cli` (VAULT-006) готовы; дальше — Windows-части VAULT-003/005, затем GUI Dependency Gate и серверный verifier.
+**Не начинайте код с установки крупного UI framework или добавления Cloud Sync.** Первый реализуемый срез — независимо проверяемое ядро OTP; формат vault v1 и его fixtures уже реализованы ([ADR-004](security/adr/0004-vault.md), [fixtures](tests/vault/v1/README.md)), in-memory сессия (VAULT-002) и Linux persistence (VAULT-003, частично) готовы; модель ошибок (VAULT-004), backup/export/import/restore для Linux (VAULT-005, частично) и headless `app-cli` (VAULT-006) готовы. [ADR-005](security/adr/0005-verifier.md) принят как `Accepted v0.2`; следующий серверный шаг — `SRV-002` после dependency review PostgreSQL-драйвера. Windows-части VAULT-003/005 и GUI (`ADR-002`) остаются отдельными треками.
 
 ## Лицензия
 

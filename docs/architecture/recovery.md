@@ -2,7 +2,7 @@
 
 Status: proposed design (2026-11-19). Scope: offline-first Rust desktop and independent Go MFA verifier. This proposal does not imply implementation.
 
-Related: [recovery threat model](../../security/recovery-threat-model.md), [device lifecycle](device-lifecycle.md), [ADR-003](../../security/adr/0003-crypto.md), [ADR-004](../../security/adr/0004-vault.md), [ADR-005](../../security/adr/0005-verifier.md) (proposed), [TODO](../../TODO.md) (`REC-001`…`REC-003`, `SRV-007`), [ADR-006](../../security/adr/0006-recovery.md) (proposed).
+Related: [recovery threat model](../../security/recovery-threat-model.md), [device lifecycle](device-lifecycle.md), [ADR-003](../../security/adr/0003-crypto.md), [ADR-004](../../security/adr/0004-vault.md), [ADR-005](../../security/adr/0005-verifier.md) (accepted v0.2), [TODO](../../TODO.md) (`REC-001`…`REC-003`, `SRV-007`), [ADR-006](../../security/adr/0006-recovery.md) (proposed).
 
 ## Recovery boundaries
 

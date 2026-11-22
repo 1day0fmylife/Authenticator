@@ -262,8 +262,8 @@ Recovery-потоки (recovery codes, enterprise reset, lost device, backup rol
 | Конкретные RustCrypto crates, AEAD, Argon2id параметры, key envelope | ADR-003 | Минимальный граф, лицензии, nonce/AAD, test vectors |
 | Бинарный формат vault v1, limits, backup | ADR-004, VAULT-001 | Версии, поля, KDF migration, atomic write, error model |
 | GUI framework и его поверхность атаки | ADR-002, GUI-001 | Dependency graph, native/unsafe, Wayland/X11, clipboard |
-| Service authentication (mTLS vs scoped tokens) | [ADR-005](adr/0005-verifier.md) (`Proposed v0.1`), SRV-003 | mTLS-only, scopes, rotation, tenant resolution; до `Accepted` — открытые вопросы §8 |
-| Challenge/TTL/rate-limit/replay policy | [ADR-005](adr/0005-verifier.md) (`Proposed v0.1`), SRV-005 | TTL, окно ±1, atomic `last_accepted_step`, идемпотентность, лимиты в PostgreSQL; параметры — §8 |
+| Service authentication (mTLS vs scoped tokens) | [ADR-005](adr/0005-verifier.md) (`Accepted v0.2`), SRV-003 | mTLS-only, scopes, rotation, tenant resolution; независимый review — `QA-002` |
+| Challenge/TTL/rate-limit/replay policy | [ADR-005](adr/0005-verifier.md) (`Accepted v0.2`), SRV-005 | TTL, окно ±1, atomic `last_accepted_step`, идемпотентность, лимиты в PostgreSQL; параметры зафиксированы |
 | Recovery codes, managed factor reset, dual control | [ADR-006](adr/0006-recovery.md), REC-002, SRV-007 | Формат/энтропия кодов, хранение verifier'ов, атомарное погашение, reset-token, rate limit в БД, fail-closed, границы relying party |
 | Модель обновлений и подписи | GUI-005, SUP-003 | Offline verification, ключи, rollback policy |
 | Политика security disclosure и лицензия | PLAN §7 | Канал, SLA, публикация |
@@ -298,3 +298,4 @@ Recovery-потоки (recovery codes, enterprise reset, lost device, backup rol
 | 15.11.2026 | 0.1 | Первичная публикация: активы, акторы, TB, угрозы по 7 доменам, остаточные риски, открытые ADR |
 | 19.11.2026 | 0.2 | Ссылка на [recovery threat model](recovery-threat-model.md); открытый вопрос recovery → ADR-006 (`REC-002`) |
 | 20.11.2026 | 0.3 | [ADR-005](adr/0005-verifier.md) предложен (`Proposed v0.1`): mTLS/tenant resolution, session binding, atomic replay, AES-256-GCM/`key_id`, миграции; вопросы §8 остаются открытыми |
+| 22.11.2026 | 0.4 | [ADR-005](adr/0005-verifier.md) `Accepted v0.2`: §8 закрыт, rate-limit defaults, key file/rotation, DB TLS/roles, provisioning, audit retention; [author-side review](reviews/0005-verifier-review.md), независимый review — `QA-002` |

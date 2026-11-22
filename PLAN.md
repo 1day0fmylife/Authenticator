@@ -164,7 +164,7 @@ GET  /health/ready
 ### 4.2. Концептуальная схема данных
 
 - `mfa_service_clients(id,tenant_id,credential_ref,status)`
-- `mfa_subjects(tenant_id,subject_id,status)`
+- `mfa_subjects(tenant_id,subject_id,status)`; `subject_id` — opaque subject из запроса (не email/account)
 - `mfa_factors(id,tenant_id,subject_id,type,algorithm,digits,period,secret_ciphertext,key_id,last_accepted_step,status)`
 - `mfa_enrollments(id,tenant_id,subject_id,secret_ciphertext,expires_at,state)`
 - `mfa_challenges(id,tenant_id,subject_id,session_binding_hash,purpose,expires_at,attempts,state)`
@@ -209,6 +209,6 @@ Recovery-потоки детализированы отдельно: [recovery t
 - GUI framework после измерения графа зависимостей и лицензий.
 - Конкретные криптографические Rust crates, AEAD, параметры Argon2id, backup/vault format.
 - Windows/Ubuntu installers, подпись пакетов и совместимость версий ОС.
-- Trust scheme, ограничения challenge, key rotation и HA для Go backend — [ADR-005](security/adr/0005-verifier.md) (`Proposed v0.1`): mTLS-only, tenant из credential, session binding, atomic replay, AES-256-GCM/`key_id`, миграции; до `Accepted` остаются открытые вопросы §8.
+- Trust scheme, ограничения challenge, key rotation и HA для Go backend — [ADR-005](security/adr/0005-verifier.md) (`Accepted v0.2`): mTLS-only, tenant из credential, session binding, atomic replay, AES-256-GCM/`key_id`, миграции; независимый security review остаётся `QA-002`.
 - Recovery codes и managed factor reset: формат и энтропия, хранение verifier'ов, атомарное погашение, reset-token, dual control, границы relying party (ADR-006, REC-002).
 - ~~Лицензия собственного репозитория~~ — решено 15.11.2026: `MIT OR Apache-2.0` ([LICENSE-MIT](LICENSE-MIT), [LICENSE-APACHE](LICENSE-APACHE)); policy security disclosure — [SECURITY.md](SECURITY.md).
